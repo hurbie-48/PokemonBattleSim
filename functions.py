@@ -1,4 +1,6 @@
 from pokemon import *
+import os
+import platform
 
 players = {}
 
@@ -31,7 +33,7 @@ def showAllPlayers() -> None:
         pokemon_str = ", ".join(pokemon_display) if pokemon_display else "None"
         print(f"{player_id}: {player_name}")
         print(f"  Team: {pokemon_str}")
-        
+
 def validateName(name: str) -> bool:
     existing_names = [info["name"] for info in players.values()]
     
@@ -73,3 +75,9 @@ def getRandomPokemon() -> Pokemon:
 
 def returnPokemonProperties(pokemon:Pokemon) -> list:
     return [pokemon.name, pokemon.level]
+
+def clear_screen():
+    if platform.system() == "Windows":
+        os.system("cls")
+    else:
+        os.system("clear")
