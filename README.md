@@ -1,1 +1,2 @@
-# Pok-monBattleSim
+# Pokémon Battle Simulator
+**Basecamp Challengeweek Project**
