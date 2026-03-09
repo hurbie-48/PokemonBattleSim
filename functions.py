@@ -1,8 +1,51 @@
 from pokemon import *
+import json
 import os
 import platform
 
 players = {}
+DATA_FILE = "players_data.json"
+
+def save_to_json():
+    """Converts player data to a JSON-friendly format and saves to disk."""
+    serializable_players = {}
+    
+    for p_id, info in players.items():
+        # Convert the list of Pokemon objects into a list of dictionaries
+        pokemon_list = []
+        for p in info["pokemon"]:
+            pokemon_list.append({"name": p.name, "level": p.level})
+            
+        serializable_players[p_id] = {
+            "name": info["name"],
+            "pokemon": pokemon_list
+        }
+    
+    with open(DATA_FILE, "w") as f:
+        json.dump(serializable_players, f, indent=4)
+
+def load_from_json():
+    """Loads data from JSON and reconstructs Pokemon objects."""
+    global players
+    if not os.path.exists(DATA_FILE):
+        return
+
+    with open(DATA_FILE, "r") as f:
+        raw_data = json.load(f)
+    
+    for p_id, info in raw_data.items():
+        reconstructed_pokemon = []
+        for p_data in info["pokemon"]:
+            # Create a new Pokemon instance and manually set its stats
+            p = Pokemon()
+            p.name = p_data["name"]
+            p.level = p_data["level"]
+            reconstructed_pokemon.append(p)
+            
+        players[p_id] = {
+            "name": info["name"],
+            "pokemon": reconstructed_pokemon
+        }
 
 def welcome() -> None:
     print("Welcome!")
@@ -61,7 +104,6 @@ def askNumber(msg: str) -> int:
                 return number
         print("Please enter a valid number from 1 to 10!")
     
-
 def givePokemonToPlayer(player: str, count: int) -> None:
     if player in players:
         for i in range(count):
