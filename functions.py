@@ -6,12 +6,14 @@ import platform
 players = {}
 DATA_FILE = "players_data.json"
 
+def jsonExists() -> bool:
+    if os.path.exists(DATA_FILE):
+        return True
+
 def save_to_json():
-    """Converts player data to a JSON-friendly format and saves to disk."""
     serializable_players = {}
     
     for p_id, info in players.items():
-        # Convert the list of Pokemon objects into a list of dictionaries
         pokemon_list = []
         for p in info["pokemon"]:
             pokemon_list.append({"name": p.name, "level": p.level})
@@ -25,7 +27,6 @@ def save_to_json():
         json.dump(serializable_players, f, indent=4)
 
 def load_from_json():
-    """Loads data from JSON and reconstructs Pokemon objects."""
     global players
     if not os.path.exists(DATA_FILE):
         return
@@ -36,7 +37,6 @@ def load_from_json():
     for p_id, info in raw_data.items():
         reconstructed_pokemon = []
         for p_data in info["pokemon"]:
-            # Create a new Pokemon instance and manually set its stats
             p = Pokemon()
             p.name = p_data["name"]
             p.level = p_data["level"]
