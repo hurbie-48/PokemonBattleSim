@@ -1,5 +1,4 @@
 from functions import *
-from unittest.mock import patch
 
 clearScreen()
 showAscii()

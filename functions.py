@@ -10,33 +10,39 @@ TRAINER_SOURCE = "trainers.json"
 ASCII_FILE = "ascii.txt"
 
 import os
+import time
+
+def slowPrint(msg: str) -> None:
+    for char in msg:
+        print(char, end="", flush=True)
+        time.sleep(0.02) 
 
 def showAscii():
     if not os.path.exists(ASCII_FILE):
         return
-
     YELLOW = "\033[93m"
     RED = "\033[91m"
     RESET = "\033[0m"
 
     with open(ASCII_FILE, "r") as f:
         for line in f:
+            line = line.rstrip("\n")
             pokemon_part = line[:75]
             battle_sim_part = line[75:]
-            print(f"{YELLOW}{pokemon_part}{RED}{battle_sim_part}{RESET}", end="")
+            print(f"{YELLOW}{pokemon_part}{RED}{battle_sim_part}{RESET}")
             
-        print("\n" + "-"*169 + "\n\n\n\n")
+        print("\n" + "-" * 169 + "\n\n\n\n")
 
 def showTrainers() -> None:
     if not os.path.exists(TRAINER_SOURCE):
-        print("Trainer data file not found.")
+        slowPrint("Error: Trainer data file not found.")
         return
 
     with open(TRAINER_SOURCE, "r") as f:
         content = json.load(f)
         trainers = content.get("trainers", {})
 
-    print(f"{'NAAM':<10} | {'MOEILIJKHEID':<12} | {'PRIJS':<10}")
+    print(f"\n{'NAAM':<10} | {'MOEILIJKHEID':<12} | {'PRIJS':<10}")
     print("-" * 40)
 
     for name, info in trainers.items():
@@ -44,12 +50,12 @@ def showTrainers() -> None:
         prize = f"${info['prize_money']}"
         description = info['description']
         
-        print(f"{name:<10} | {difficulty:<12} | {prize:<10}")
-        print(f"   \"{description}\"\n")
+        slowPrint(f"{name:<10} | {difficulty:<12} | {prize:<10}")
+        slowPrint(f"   \"{description}\"")
+        print()
 
 def askTrainer(msg: str) -> str:
     if not os.path.exists(TRAINER_SOURCE):
-        print("Trainer data file not found.")
         return ""
 
     with open(TRAINER_SOURCE, "r") as f:
@@ -60,18 +66,16 @@ def askTrainer(msg: str) -> str:
     
     while True:
         choice = input(msg).capitalize()
+        
         if choice in trainer_names:
             info = trainers[choice]
-            difficulty = info.get('difficulty', 'Unknown')
-            prize = info.get('prize_money', 0)
-            description = info.get('description', '')
-            print(f"\nJe hebt {choice} gekozen!")
-            print(f"Moeilijkheidsgraad: {difficulty}")
-            print(f"Prijzengeld: ${prize}")
-            print(f"Beschrijving: {description}\n")
+            slowPrint(f"\nJe hebt {choice} gekozen!")
+            slowPrint(f"Moeilijkheidsgraad: {info.get('difficulty', 'Unknown')}")
+            slowPrint(f"Prijzengeld: ${info.get('prize_money', 0)}")
+            slowPrint(f"Beschrijving: {info.get('description', '')}\n")
             return choice
-        print(f"Please choose a valid trainer: {', '.join(trainer_names)}")
             
+        slowPrint(f"Error: Kies een geldige trainer: {', '.join(trainer_names)}")
 
 def load_pokemon_atlas():
     if os.path.exists(POKEMON_SOURCE):
@@ -177,7 +181,7 @@ def askName(msg: str) -> str:
         name = input(msg)
         if validateName(name):
             return name
-        print("Please enter a valid name! (2-15 chars, starts with Capital, not taken)")
+        slowPrint("Invalid name! (2-15 chars, starts with Capital, not taken)")
 
 def askNumber(msg: str) -> int:
     while True:
