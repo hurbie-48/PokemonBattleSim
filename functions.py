@@ -27,7 +27,7 @@ def showTrainers() -> None:
         content = json.load(f)
         trainers = content.get("trainers", {})
 
-    print(f"{'NAME':<10} | {'DIFFICULTY':<12} | {'PRIZE':<10}")
+    print(f"{'NAAM':<10} | {'MOEILIJKHEID':<12} | {'PRIJS':<10}")
     print("-" * 40)
 
     for name, info in trainers.items():
@@ -52,8 +52,19 @@ def askTrainer(msg: str) -> str:
     while True:
         choice = input(msg)
         if choice in trainer_names:
+            # show selected trainer's info
+            info = trainers[choice]
+            difficulty = info.get('difficulty', 'Unknown')
+            prize = info.get('prize_money', 0)
+            description = info.get('description', '')
+            # print summary message in Dutch to match user expectation
+            print(f"\nJe hebt {choice} gekozen!")
+            print(f"Moeilijkheidsgraad: {difficulty}")
+            print(f"Prijzengeld: ${prize}")
+            print(f"Beschrijving: {description}\n")
             return choice
         print(f"Please choose a valid trainer: {', '.join(trainer_names)}")
+            
 
 def load_pokemon_atlas():
     if os.path.exists(POKEMON_SOURCE):
