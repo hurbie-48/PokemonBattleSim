@@ -59,7 +59,7 @@ def askTrainer(msg: str) -> str:
     trainer_names = list(trainers.keys())
     
     while True:
-        choice = input(msg)
+        choice = input(msg).capitalize()
         if choice in trainer_names:
             # show selected trainer's info
             info = trainers[choice]
