@@ -5,6 +5,53 @@ import platform
 
 players = {}
 DATA_FILE = "players_data.json"
+POKEMON_SOURCE = "pokemon.json"
+TRAINER_SOURCE = "trainers.json"
+ASCII_FILE = "ascii.txt"
+
+def showAscii():
+    if not os.path.exists(ASCII_FILE):
+        return
+
+    with open(ASCII_FILE, "r") as f:
+        logo = f.read()
+        print(logo)
+        print("-"*169,"\n\n\n\n")
+
+def showTrainers() -> None:
+    if not os.path.exists(TRAINER_SOURCE):
+        print("Trainer data file not found.")
+        return
+
+    with open(TRAINER_SOURCE, "r") as f:
+        content = json.load(f)
+        trainers = content.get("trainers", {})
+
+    print(f"{'NAME':<10} | {'DIFFICULTY':<12} | {'PRIZE':<10}")
+    print("-" * 40)
+
+    for name, info in trainers.items():
+        difficulty = info['difficulty']
+        prize = f"${info['prize_money']}"
+        description = info['description']
+        
+        print(f"{name:<10} | {difficulty:<12} | {prize:<10}")
+        print(f"   \"{description}\"\n")
+
+def load_pokemon_atlas():
+    if os.path.exists(POKEMON_SOURCE):
+        with open(POKEMON_SOURCE, "r") as f:
+            data = json.load(f)
+            
+            if isinstance(data, dict):
+                return list(data.values())
+            
+            if isinstance(data, list) and len(data) > 0 and isinstance(data[0], list):
+                return data[0]
+                
+            return data
+    return []
+
 
 def jsonExists() -> bool:
     if os.path.exists(DATA_FILE):
@@ -12,11 +59,13 @@ def jsonExists() -> bool:
 
 def save_to_json():
     serializable_players = {}
-    
     for p_id, info in players.items():
         pokemon_list = []
         for p in info["pokemon"]:
-            pokemon_list.append({"name": p.name, "level": p.level})
+            pokemon_list.append({
+                "name": p.name, 
+                "level": p.level
+            })
             
         serializable_players[p_id] = {
             "name": info["name"],
@@ -112,14 +161,23 @@ def givePokemonToPlayer(player: str, count: int) -> None:
     else:
         print(f"Error: {player} does not exist in the players dictionary.")
 
+
+
 def getRandomPokemon() -> Pokemon:
+    if POKEMON_POOL:
+        random_data = random.choice(POKEMON_POOL)
+        return Pokemon(random_data)
     return Pokemon()
 
 def returnPokemonProperties(pokemon:Pokemon) -> list:
     return [pokemon.name, pokemon.level]
 
-def clear_screen():
+def clearScreen():
     if platform.system() == "Windows":
         os.system("cls")
     else:
         os.system("clear")
+
+
+
+POKEMON_POOL = load_pokemon_atlas()

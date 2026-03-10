@@ -1,0 +1,34 @@
+{
+  "trainers": {
+    "Alex": {
+      "description": "Trainer Alex is een rustige en leerzame trainer. Perfect voor je eerste gevecht.",
+      "difficulty": "Beginner",
+      "prize_money": 100
+    },
+    "Maya": {
+      "description": "Trainer Maya houdt van snelle aanvallen, maar haar strategie is eenvoudig.",
+      "difficulty": "Easy",
+      "prize_money": 250
+    },
+    "Leo": {
+      "description": "Trainer Leo is zelfverzekerd en heeft al veel ervaring. Verwacht een uitdaging!",
+      "difficulty": "Medium",
+      "prize_money": 500
+    },
+    "Zara": {
+      "description": "Trainer Zara vecht met passie en vastberadenheid. Je moet slim spelen om te winnen.",
+      "difficulty": "Medium-Hard",
+      "prize_money": 750
+    },
+    "Kai": {
+      "description": "Trainer Kai is onvoorspelbaar en kan verrassend aanvallen. Een echte test van je vaardigheden.",
+      "difficulty": "Hard",
+      "prize_money": 1200
+    },
+    "Nova": {
+      "description": "Trainer Nova is een van de sterkste trainers in het land. Alleen de besten kunnen hem verslaan!",
+      "difficulty": "Very Hard",
+      "prize_money": 2500
+    }
+  }
+}
