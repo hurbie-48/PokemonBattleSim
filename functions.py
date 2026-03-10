@@ -59,14 +59,13 @@ def askTrainer(msg: str) -> str:
     trainer_names = list(trainers.keys())
     
     while True:
-        choice = input(msg)
+        choice = input(msg).capitalize()
         if choice in trainer_names:
             # show selected trainer's info
             info = trainers[choice]
             difficulty = info.get('difficulty', 'Unknown')
             prize = info.get('prize_money', 0)
             description = info.get('description', '')
-            # print summary message in Dutch to match user expectation
             print(f"\nJe hebt {choice} gekozen!")
             print(f"Moeilijkheidsgraad: {difficulty}")
             print(f"Prijzengeld: ${prize}")
