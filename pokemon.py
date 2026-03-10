@@ -5,4 +5,4 @@ class Pokemon:
         pokemon_pool = ["Mudkip", "Pikachu", "Chikorita", "Torchic", "Bulbasaur"]
 
         self.name = random.choice(pokemon_pool)
-        self.level = random.randint(1, 4)
+        self.level = random.randint(2, 5)
