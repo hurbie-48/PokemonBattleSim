@@ -38,6 +38,23 @@ def showTrainers() -> None:
         print(f"{name:<10} | {difficulty:<12} | {prize:<10}")
         print(f"   \"{description}\"\n")
 
+def askTrainer(msg: str) -> str:
+    if not os.path.exists(TRAINER_SOURCE):
+        print("Trainer data file not found.")
+        return ""
+
+    with open(TRAINER_SOURCE, "r") as f:
+        content = json.load(f)
+        trainers = content.get("trainers", {})
+
+    trainer_names = list(trainers.keys())
+    
+    while True:
+        choice = input(msg)
+        if choice in trainer_names:
+            return choice
+        print(f"Please choose a valid trainer: {', '.join(trainer_names)}")
+
 def load_pokemon_atlas():
     if os.path.exists(POKEMON_SOURCE):
         with open(POKEMON_SOURCE, "r") as f:
