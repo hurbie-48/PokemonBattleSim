@@ -9,14 +9,23 @@ POKEMON_SOURCE = "pokemon.json"
 TRAINER_SOURCE = "trainers.json"
 ASCII_FILE = "ascii.txt"
 
+import os
+
 def showAscii():
     if not os.path.exists(ASCII_FILE):
         return
 
+    YELLOW = "\033[93m"
+    RED = "\033[91m"
+    RESET = "\033[0m"
+
     with open(ASCII_FILE, "r") as f:
-        logo = f.read()
-        print(logo)
-        print("-"*169,"\n\n\n\n")
+        for line in f:
+            pokemon_part = line[:75]
+            battle_sim_part = line[75:]
+            print(f"{YELLOW}{pokemon_part}{RED}{battle_sim_part}{RESET}", end="")
+            
+        print("\n" + "-"*169 + "\n\n\n\n")
 
 def showTrainers() -> None:
     if not os.path.exists(TRAINER_SOURCE):
