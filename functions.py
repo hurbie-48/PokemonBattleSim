@@ -1,6 +1,5 @@
 import os
 import random
-from typing import List
 
 from Player import Player
 from Pokemon import Pokemon
@@ -31,7 +30,7 @@ def ask_name(msg: str) -> str:
         name = input(msg)
     return name
 
-def get_random_pokemon(count:int) -> List[Pokemon]:
+def get_random_pokemon(count:int) -> list[Pokemon]:
     pokemon_names = ["Pikachu", "Bulbasaur", "Charmander", "Squirtle"]
     # Maak een nieuwe lijst aan waar de pokemons in komen
     pokemon = []
