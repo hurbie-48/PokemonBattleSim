@@ -1,5 +1,8 @@
+from Pokemon import Pokemon
+
+
 class Player:
-    def __init__(self, name:str, pokemon:list):
+    def __init__(self, name:str, pokemon:list[Pokemon]):
         self.name = name
         self.pokemon = pokemon
 
