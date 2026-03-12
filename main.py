@@ -1,0 +1,17 @@
+from functions import *
+clear_screen()
+welcome()
+name = ask_name("Wat is uw naam? ")
+player_pokemon = get_random_pokemon(6)
+player = create_new_player(name, player_pokemon, 20)
+show_player_stats(player)
+trainers = load_trainers_from_json("trainers.json")
+show_all_trainers(trainers)
+chosen_name = ask_trainer("Kies een trainer (typ de naam): ")
+selected_trainer = check_trainer(chosen_name, trainers)
+while not selected_trainer:
+    print("Deze trainer bestaat niet. Probeer het opnieuw.")
+    chosen_name = ask_trainer("Kies een trainer (typ de naam): ")
+    selected_trainer = check_trainer(chosen_name, trainers)
+print(f"Je hebt gekozen voor trainer {selected_trainer.name}. Veel succes met de battle!")
+show_player_stats(player)
