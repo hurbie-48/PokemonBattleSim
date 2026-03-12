@@ -1,6 +1,8 @@
 import os
 import random
 import json
+
+from Trainer import Trainer
 from Player import Player
 from Pokemon import Pokemon
 
@@ -53,12 +55,27 @@ def get_random_pokemon(count:int) -> list[Pokemon]:
     # Geef de gehele lijst met pokemon terug
     return pokemon
 
-def create_new_player(name:str, pokemon:list) -> Player:
+def create_new_player(name:str, pokemon:list[Pokemon], money:int) -> Player:
     # Maak een nieuwe speler aan
-    return Player(name=name, pokemon=pokemon)
+    return Player(name=name, pokemon=pokemon, money=money)
 
-def show_pokemon(player:Player) -> None:
+def show_player_stats(player:Player) -> None:
     # Print alle pokemons die een speler heeft
-    print(f"{player.name} heeft op dit moment de volgende pokemon: \n")
+    print(f"{player.name} heeft op dit moment ${player.money} en de volgende pokemon: \n")
     for pokemon in player.pokemon:
         print(f"{pokemon}")
+
+def show_trainer_stats(trainer:Trainer) -> None:
+    print(f"Naam: {trainer.name}\nBeschrijving: {trainer.description}\nPrijzengeld: {trainer.price_money}")
+    print(f"{trainer.name} heeft de volgende pokemon:")
+    for pokemon in trainer.pokemon:
+        print(f"{pokemon}")
+
+def show_all_trainers(trainers:list[Trainer]) -> None:
+    print("Hier zijn de bestaande trainers:\n-----\n")
+    for trainer in trainers:
+        show_trainer_stats(trainer)
+
+def create_new_trainer(name:str, description:str, pokemon:list, price_money:int) -> Trainer:
+    # Maak een nieuwe trainer aan
+    return Trainer(name=name, description=description, pokemon=pokemon, price_money=price_money)
