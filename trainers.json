@@ -1,7 +1,7 @@
 {
   "trainers": {
-    "Alex": {
-      "description": "Trainer Alex is een rustige en leerzame trainer. Perfect voor je eerste gevecht.",
+    "Marleen": {
+      "description": "Trainer Marleen is een rustige en leerzame trainer. Perfect voor je eerste gevecht.",
       "difficulty": "Beginner",
       "prize_money": 100
     },
@@ -25,10 +25,10 @@
       "difficulty": "Hard",
       "prize_money": 1200
     },
-    "Nova": {
-      "description": "Trainer Nova is een van de sterkste trainers in het land. Alleen de besten kunnen hem verslaan!",
-      "difficulty": "Very Hard",
-      "prize_money": 2500
+    "Michelon": {
+      "description": "Niet proberen te verslaan, want Trainer Michelon is een legende in de Pokémon-wereld. niemand heeft hem ooit verslagen.",
+      "difficulty": "Impossible",
+      "prize_money": 10000
     }
   }
 }
