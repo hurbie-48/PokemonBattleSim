@@ -1,0 +1,272 @@
+[
+  {
+    "id": 1,
+    "num": "001",
+    "name": "Bulbasaur",
+    "img": "http://www.serebii.net/pokemongo/pokemon/001.png",
+    "type": ["Grass","Poison"],
+    "height": "0.71 m",
+    "weight": "6.9 kg",
+    "weaknesses": ["Fire","Ice","Flying","Psychic"]
+  },
+  {
+    "id": 2,
+    "num": "004",
+    "name": "Charmander",
+    "img": "http://www.serebii.net/pokemongo/pokemon/004.png",
+    "type": ["Fire"],
+    "height": "0.61 m",
+    "weight": "8.5 kg",
+    "weaknesses": ["Water","Ground","Rock"]
+  },
+  {
+    "id": 3,
+    "num": "007",
+    "name": "Squirtle",
+    "img": "http://www.serebii.net/pokemongo/pokemon/007.png",
+    "type": ["Water"],
+    "height": "0.51 m",
+    "weight": "9.0 kg",
+    "weaknesses": ["Electric","Grass"]
+  },
+  {
+    "id": 4,
+    "num": "152",
+    "name": "Chikorita",
+    "img": "http://www.serebii.net/pokemongo/pokemon/152.png",
+    "type": ["Grass"],
+    "height": "0.89 m",
+    "weight": "6.4 kg",
+    "weaknesses": ["Fire","Ice","Poison","Flying","Bug"]
+  },
+  {
+    "id": 5,
+    "num": "155",
+    "name": "Cyndaquil",
+    "img": "http://www.serebii.net/pokemongo/pokemon/155.png",
+    "type": ["Fire"],
+    "height": "0.51 m",
+    "weight": "7.9 kg",
+    "weaknesses": ["Water","Ground","Rock"]
+  },
+  {
+    "id": 6,
+    "num": "158",
+    "name": "Totodile",
+    "img": "http://www.serebii.net/pokemongo/pokemon/158.png",
+    "type": ["Water"],
+    "height": "0.61 m",
+    "weight": "9.5 kg",
+    "weaknesses": ["Electric","Grass"]
+  },
+  {
+    "id": 7,
+    "num": "252",
+    "name": "Treecko",
+    "img": "http://www.serebii.net/pokemongo/pokemon/252.png",
+    "type": ["Grass"],
+    "height": "0.51 m",
+    "weight": "5.0 kg",
+    "weaknesses": ["Fire","Ice","Poison","Flying","Bug"]
+  },
+  {
+    "id": 8,
+    "num": "255",
+    "name": "Torchic",
+    "img": "http://www.serebii.net/pokemongo/pokemon/255.png",
+    "type": ["Fire"],
+    "height": "0.41 m",
+    "weight": "2.5 kg",
+    "weaknesses": ["Water","Ground","Rock"]
+  },
+  {
+    "id": 9,
+    "num": "258",
+    "name": "Mudkip",
+    "img": "http://www.serebii.net/pokemongo/pokemon/258.png",
+    "type": ["Water"],
+    "height": "0.41 m",
+    "weight": "7.6 kg",
+    "weaknesses": ["Electric","Grass"]
+  },
+  {
+    "id": 10,
+    "num": "387",
+    "name": "Turtwig",
+    "img": "http://www.serebii.net/pokemongo/pokemon/387.png",
+    "type": ["Grass"],
+    "height": "0.41 m",
+    "weight": "10.2 kg",
+    "weaknesses": ["Fire","Ice","Poison","Flying","Bug"]
+  },
+  {
+    "id": 11,
+    "num": "390",
+    "name": "Chimchar",
+    "img": "http://www.serebii.net/pokemongo/pokemon/390.png",
+    "type": ["Fire"],
+    "height": "0.51 m",
+    "weight": "6.2 kg",
+    "weaknesses": ["Water","Ground","Rock"]
+  },
+  {
+    "id": 12,
+    "num": "393",
+    "name": "Piplup",
+    "img": "http://www.serebii.net/pokemongo/pokemon/393.png",
+    "type": ["Water"],
+    "height": "0.41 m",
+    "weight": "5.2 kg",
+    "weaknesses": ["Electric","Grass"]
+  },
+  {
+    "id": 13,
+    "num": "495",
+    "name": "Snivy",
+    "img": "http://www.serebii.net/pokemongo/pokemon/495.png",
+    "type": ["Grass"],
+    "height": "0.61 m",
+    "weight": "8.1 kg",
+    "weaknesses": ["Fire","Ice","Poison","Flying","Bug"]
+  },
+  {
+    "id": 14,
+    "num": "498",
+    "name": "Tepig",
+    "img": "http://www.serebii.net/pokemongo/pokemon/498.png",
+    "type": ["Fire"],
+    "height": "0.51 m",
+    "weight": "9.9 kg",
+    "weaknesses": ["Water","Ground","Rock"]
+  },
+  {
+    "id": 15,
+    "num": "501",
+    "name": "Oshawott",
+    "img": "http://www.serebii.net/pokemongo/pokemon/501.png",
+    "type": ["Water"],
+    "height": "0.51 m",
+    "weight": "5.9 kg",
+    "weaknesses": ["Electric","Grass"]
+  },
+  {
+    "id": 16,
+    "num": "650",
+    "name": "Chespin",
+    "img": "http://www.serebii.net/pokemongo/pokemon/650.png",
+    "type": ["Grass"],
+    "height": "0.41 m",
+    "weight": "9.0 kg",
+    "weaknesses": ["Fire","Ice","Poison","Flying","Bug"]
+  },
+  {
+    "id": 17,
+    "num": "653",
+    "name": "Fennekin",
+    "img": "http://www.serebii.net/pokemongo/pokemon/653.png",
+    "type": ["Fire"],
+    "height": "0.41 m",
+    "weight": "9.4 kg",
+    "weaknesses": ["Water","Ground","Rock"]
+  },
+  {
+    "id": 18,
+    "num": "656",
+    "name": "Froakie",
+    "img": "http://www.serebii.net/pokemongo/pokemon/656.png",
+    "type": ["Water"],
+    "height": "0.31 m",
+    "weight": "7.0 kg",
+    "weaknesses": ["Electric","Grass"]
+  },
+  {
+    "id": 19,
+    "num": "722",
+    "name": "Rowlet",
+    "img": "http://www.serebii.net/pokemongo/pokemon/722.png",
+    "type": ["Grass","Flying"],
+    "height": "0.31 m",
+    "weight": "1.5 kg",
+    "weaknesses": ["Fire","Ice","Poison","Flying","Rock"]
+  },
+  {
+    "id": 20,
+    "num": "725",
+    "name": "Litten",
+    "img": "http://www.serebii.net/pokemongo/pokemon/725.png",
+    "type": ["Fire"],
+    "height": "0.41 m",
+    "weight": "4.3 kg",
+    "weaknesses": ["Water","Ground","Rock"]
+  },
+  {
+    "id": 21,
+    "num": "728",
+    "name": "Popplio",
+    "img": "http://www.serebii.net/pokemongo/pokemon/728.png",
+    "type": ["Water"],
+    "height": "0.41 m",
+    "weight": "7.5 kg",
+    "weaknesses": ["Electric","Grass"]
+  },
+  {
+    "id": 22,
+    "num": "810",
+    "name": "Grookey",
+    "img": "http://www.serebii.net/pokemongo/pokemon/810.png",
+    "type": ["Grass"],
+    "height": "0.31 m",
+    "weight": "5.0 kg",
+    "weaknesses": ["Fire","Ice","Poison","Flying","Bug"]
+  },
+  {
+    "id": 23,
+    "num": "813",
+    "name": "Scorbunny",
+    "img": "http://www.serebii.net/pokemongo/pokemon/813.png",
+    "type": ["Fire"],
+    "height": "0.31 m",
+    "weight": "4.5 kg",
+    "weaknesses": ["Water","Ground","Rock"]
+  },
+  {
+    "id": 24,
+    "num": "816",
+    "name": "Sobble",
+    "img": "http://www.serebii.net/pokemongo/pokemon/816.png",
+    "type": ["Water"],
+    "height": "0.31 m",
+    "weight": "4.0 kg",
+    "weaknesses": ["Electric","Grass"]
+  },
+  {
+    "id": 25,
+    "num": "906",
+    "name": "Sprigatito",
+    "img": "http://www.serebii.net/pokemongo/pokemon/906.png",
+    "type": ["Grass"],
+    "height": "0.41 m",
+    "weight": "4.1 kg",
+    "weaknesses": ["Fire","Ice","Poison","Flying","Bug"]
+  },
+  {
+    "id": 26,
+    "num": "909",
+    "name": "Fuecoco",
+    "img": "http://www.serebii.net/pokemongo/pokemon/909.png",
+    "type": ["Fire"],
+    "height": "0.41 m",
+    "weight": "9.8 kg",
+    "weaknesses": ["Water","Ground","Rock"]
+  },
+  {
+    "id": 27,
+    "num": "912",
+    "name": "Quaxly",
+    "img": "http://www.serebii.net/pokemongo/pokemon/912.png",
+    "type": ["Water"],
+    "height": "0.51 m",
+    "weight": "6.1 kg",
+    "weaknesses": ["Electric","Grass"]
+  }
+]
