@@ -145,21 +145,28 @@ def show_trainer_stats(trainer: Trainer) -> None:
     print("-" * 55)
     print(color_text(f"TRAINER: {trainer.name}".center(55), "bold"))
     print(f"Info: {trainer.description}")
+    # Highlighting the Bounty in Yellow
     print(f"Bounty: {color_text(f'${trainer.price_money}', 'yellow')}")
     print("-" * 55)
 
-    # Table Header
-    print(f"{'Pokemon':<15} | {'Lvl':<6} | {'Attack':<10} | {'Defense':<10}")
+    # Table Header (Underlined or Bold looks best here)
+    header = f"{'Pokemon':<15} | {'Lvl':<6} | {'Attack':<10} | {'Defense':<10}"
+    print(color_text(header, "bold"))
     print("~" * 55)
 
-    # Pokemon Rows
+    # Pokemon Rows with full color support
     for p in trainer.pokemon:
-        # Note: Using standard f-strings here as requested, 
-        # but you can wrap these in color_text() if your helper supports it
-        print(f"{p.name:<15} | {p.level:<6} | {p.attack:<10} | {p.defense:<10}")
+        name = color_text(f"{p.name:<15}", "cyan")
+        lvl  = f"{p.level:<6}"
+        att  = color_text(f"{p.attack:<10}", "red")
+        defs = color_text(f"{p.defense:<10}", "blue")
+        
+        # Printing the formatted row
+        print(f"{name} | {lvl} | {att} | {defs}")
+    
     print("-" * 55 + "\n")
 
-    
+
 def show_all_trainers(trainers:list[Trainer]) -> None:
     print("Hier zijn de bestaande trainers:\n-----\n")
     for trainer in trainers:
