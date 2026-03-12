@@ -1,8 +1,9 @@
 import os
 import random
-
+import json
 from Player import Player
 from Pokemon import Pokemon
+
 
 
 def clear_screen() -> None:
@@ -31,7 +32,16 @@ def ask_name(msg: str) -> str:
     return name
 
 def get_random_pokemon(count:int) -> list[Pokemon]:
-    pokemon_names = ["Pikachu", "Bulbasaur", "Charmander", "Squirtle"]
+    
+    with open("pokemon.json", "r") as f:
+        pokemon_names = json.load(f)
+
+    pokemon_names = pokemon_names["name"]
+    print(pokemon_names)
+
+
+    
+    
     # Maak een nieuwe lijst aan waar de pokemons in komen
     pokemon = []
     for i in range(count):
