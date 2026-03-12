@@ -61,7 +61,7 @@ def ask_name(msg: str) -> str:
 def get_random_pokemon_names() -> list[str]:
     with open("pokemon.json", "r") as f:
         data = json.load(f)
-    pokemon_names = [p["name"] for p in data["pokemon"]]
+    pokemon_names = [p["name"] for p in data]
     return pokemon_names
 
 def get_random_pokemon(count:int) -> list[Pokemon]:
