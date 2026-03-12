@@ -10,3 +10,11 @@ trainers = []
 trainer_kai = create_new_trainer("Kai", "Trainer Kai is onvoorspelbaar en kan verrassend aanvallen. Een echte test van je vaardigheden.", pokemon, 1200)
 trainers.append(trainer_kai)
 show_all_trainers(trainers)
+chosen_trainer = ask_trainer("Kies een trainer (typ de naam): ")
+
+while not check_trainer(chosen_trainer, trainers):
+    print("Deze trainer bestaat niet. Probeer het opnieuw.")
+    chosen_trainer = ask_trainer("Kies een trainer (typ de naam): ")
+
+else:
+    print(f"Je hebt gekozen voor trainer {chosen_trainer}. Veel succes met de battle!")
