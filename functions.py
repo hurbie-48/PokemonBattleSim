@@ -11,8 +11,32 @@ def clear_screen() -> None:
     os.system("cls") if os.name == "nt" else os.system("clear")
 
 def welcome() -> None:
-    # print welkom!
-    print("\nWelkom!")
+    print("""
+╔══════════════════════════════════════════════╗
+║              ⚔️ POKÉMON BATTLE SIM ⚔️        ║
+╚══════════════════════════════════════════════╝
+
+Welkom trainer!
+
+In deze Pokémon Battle Simulator neem jij het op
+tegen een andere trainer in een spannende battle.
+
+Je krijgt een random team van 6 Pokémon, 
+elk met unieke stats en vaardigheden.
+Kies je aanvallen verstandig en probeer
+je tegenstander te verslaan!
+
+Elke Pokémon heeft:
+- ❤️ HP (health points)
+- ⚡ Attack kracht
+- 🛡️ Defense
+
+Gebruik je aanvallen slim en win de battle!
+
+Maak je klaar trainer...
+De battle gaat beginnen!
+
+""")
 
 def is_name_valid(name: str) -> bool:
     # Check of de naam minimaal 2 en maximaal 15 karakters heeft.
