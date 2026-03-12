@@ -1,12 +1,33 @@
 import os
 import random
 import json
+import math
 
 from Trainer import Trainer
 from Player import Player
 from Pokemon import Pokemon
 
 
+
+
+def calculate_pokemon_stats(level: int) -> dict:
+    # A base value used to scale the stats relative to level
+    # We use 50 as a generic "average" base stat
+    base = 50
+    iv = 31
+    ev = 0
+
+    # Simplified math using only the level provided
+    inner = math.floor((2 * base + iv + math.floor(ev / 4)) * level / 100)
+
+    return {
+        "hp": inner + level + 10,
+        "attack": inner + 5,
+        "defense": inner + 5,
+        "sp_attack": inner + 5,
+        "sp_defense": inner + 5,
+        "speed": inner + 5
+    }
 
 def clear_screen() -> None:
     # Als iemand op windows zit gebruik cls, en anders clear
@@ -57,7 +78,6 @@ def ask_name(msg: str) -> str:
         name = input(msg)
     return name
 
-
 def get_random_pokemon_names() -> list[str]:
     with open("pokemon.json", "r") as f:
         data = json.load(f)
@@ -74,8 +94,10 @@ def get_random_pokemon(count:int) -> list[Pokemon]:
         random_name = random.choice(pokemon_names)
         # Kies een random getal van 2 tot 5 en sla deze op in random_level
         random_level = random.randint(2,5)
+
+        new_pokemon = Pokemon(name=random_name, level=random_level, hp=calculate_pokemon_stats(random_level)["hp"], attack=calculate_pokemon_stats(random_level)["attack"], defense=calculate_pokemon_stats(random_level)["defense"])
         # Maak een nieuwe Pokemon aan met de gegevens en append dit in de lijst
-        pokemon.append(Pokemon(name=random_name, level=random_level))
+        pokemon.append(new_pokemon)
     # Geef de gehele lijst met pokemon terug
     return pokemon
 
@@ -113,3 +135,8 @@ def check_trainer(trainer_name:str, trainers:list[Trainer]) -> Trainer | bool:
         if trainer.name.lower() == trainer_name.lower():
             return trainer
     return False
+
+def show_pokemon_stats(pokemon:Pokemon, player:Player) -> None:
+    print(f"Hier zijn de stats voor: {pokemon.name} ({pokemon.level})")
+    print(f"De pokemon is van {player.name}")
+    print(f"Hp: {pokemon.hp}\nAttack: {pokemon.attack}\nDefense: {pokemon.defense}")

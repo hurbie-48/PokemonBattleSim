@@ -18,3 +18,6 @@ while not check_trainer(chosen_trainer, trainers):
 
 else:
     print(f"Je hebt gekozen voor trainer {chosen_trainer}. Veel succes met de battle!")
+
+show_pokemon_stats(player.pokemon[0], player)
+show_pokemon_stats(player.pokemon[1], player)
