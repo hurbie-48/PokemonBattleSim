@@ -103,3 +103,13 @@ def show_all_trainers(trainers:list[Trainer]) -> None:
 def create_new_trainer(name:str, description:str, pokemon:list, price_money:int) -> Trainer:
     # Maak een nieuwe trainer aan
     return Trainer(name=name, description=description, pokemon=pokemon, price_money=price_money)
+
+def ask_trainer(msg:str) -> str:
+    trainer_name = input(msg)
+    return trainer_name
+
+def check_trainer(trainer_name:str, trainers:list[Trainer]) -> Trainer | bool:
+    for trainer in trainers:
+        if trainer.name.lower() == trainer_name.lower():
+            return trainer
+    return False
