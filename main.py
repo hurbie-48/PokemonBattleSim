@@ -10,7 +10,7 @@ show_all_trainers(trainers)
 chosen_name = ask_trainer("Kies een trainer (typ de naam): ")
 selected_trainer = check_trainer(chosen_name, trainers)
 while not selected_trainer:
-    print("Deze trainer bestaat niet. Probeer het opnieuw.")
+    print(color_text("Deze trainer bestaat niet. Probeer het opnieuw.", "red"))
     chosen_name = ask_trainer("Kies een trainer (typ de naam): ")
     selected_trainer = check_trainer(chosen_name, trainers)
 print(f"Je hebt gekozen voor trainer {selected_trainer.name}. Veel succes met de battle!")
