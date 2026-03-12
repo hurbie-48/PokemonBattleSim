@@ -8,9 +8,23 @@ from Player import Player
 from Pokemon import Pokemon
 
 
+def color_text(text: str, color: str) -> str:
+    colors = {
+        "red": "\033[91m",
+        "green": "\033[92m",
+        "yellow": "\033[93m",
+        "blue": "\033[94m",
+        "magenta": "\033[95m",
+        "cyan": "\033[96m",
+        "gold": "\033[93m",
+        "bold": "\033[1m",
+        "reset": "\033[0m"
+    }
+    return f"{colors.get(color, colors['reset'])}{text}{colors['reset']}"
 
 
 def calculate_pokemon_stats(level: int) -> dict:
+
     # A base value used to scale the stats relative to level
     # We use 50 as a generic "average" base stat
     base = 50
@@ -74,7 +88,7 @@ def is_name_valid(name: str) -> bool:
 def ask_name(msg: str) -> str:
     name = input(msg)
     while not is_name_valid(name):
-        print("Vul a.u.b een naam in van minimaal 2 karakters, maximaal 15 karakters en zonder cijfers.")
+        print(color_text("Vul a.u.b een naam in van minimaal 2 karakters, maximaal 15 karakters en zonder cijfers.", "red"))
         name = input(msg)
     return name
 
@@ -105,18 +119,47 @@ def create_new_player(name:str, pokemon:list[Pokemon], money:int) -> Player:
     # Maak een nieuwe speler aan
     return Player(name=name, pokemon=pokemon, money=money)
 
-def show_player_stats(player:Player) -> None:
-    # Print alle pokemons die een speler heeft
-    print(f"{player.name} heeft op dit moment ${player.money} en de volgende pokemon: \n")
-    for pokemon in player.pokemon:
-        print(f"{pokemon.name}, Lvl: {pokemon.level}, Att: {pokemon.attack}, Def: {pokemon.defense}")
+def show_player_stats(player: Player) -> None:
+    # Header and Player Info
+    print("-" * 55)
+    header_text = f"{player.name} | Balance: ${player.money}"
+    print(color_text(header_text.center(55), "blue"))
+    print("-" * 55)
+    
+    # Table Header
+    print(f"{'Pokemon':<15} | {'Lvl':<6} | {'Attack':<10} | {'Defense':<10}")
+    print("~" * 55)
 
-def show_trainer_stats(trainer:Trainer) -> None:
-    print(f"Naam: {trainer.name}\nBeschrijving: {trainer.description}\nPrijzengeld: {trainer.price_money}")
-    print(f"{trainer.name} heeft de volgende pokemon:")
-    for pokemon in trainer.pokemon:
-        print(f"{pokemon.name}, Lvl: {pokemon.level}, Att: {pokemon.attack}, Def: {pokemon.defense}")
+    # Pokemon Rows
+    for p in player.pokemon:
+        name = color_text(f"{p.name:<15}", "cyan")
+        lvl  = f"{p.level:<6}"
+        att  = color_text(f"{p.attack:<10}", "red")
+        defs = color_text(f"{p.defense:<10}", "blue")
+        print(f"{name} | {lvl} | {att} | {defs}")
+    print("-" * 55 + "\n")
 
+
+def show_trainer_stats(trainer: Trainer) -> None:
+    # Header and Trainer Info
+    print("-" * 55)
+    print(color_text(f"TRAINER: {trainer.name}".center(55), "bold"))
+    print(f"Info: {trainer.description}")
+    print(f"Bounty: {color_text(f'${trainer.price_money}', 'yellow')}")
+    print("-" * 55)
+
+    # Table Header
+    print(f"{'Pokemon':<15} | {'Lvl':<6} | {'Attack':<10} | {'Defense':<10}")
+    print("~" * 55)
+
+    # Pokemon Rows
+    for p in trainer.pokemon:
+        # Note: Using standard f-strings here as requested, 
+        # but you can wrap these in color_text() if your helper supports it
+        print(f"{p.name:<15} | {p.level:<6} | {p.attack:<10} | {p.defense:<10}")
+    print("-" * 55 + "\n")
+
+    
 def show_all_trainers(trainers:list[Trainer]) -> None:
     print("Hier zijn de bestaande trainers:\n-----\n")
     for trainer in trainers:
