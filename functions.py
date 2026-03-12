@@ -23,15 +23,13 @@ Welkom trainer!
 In deze Pokémon Battle Simulator neem jij het op
 tegen een andere trainer in een spannende battle.
 
-Je krijgt een random team van 6 Pokémon, 
-elk met unieke stats en vaardigheden.
-Kies je aanvallen verstandig en probeer
-je tegenstander te verslaan!
+Je krijgt 6 willekeurige Pokémon toegewezen 
+en moet slim gebruik maken van hun aanvallen en zwaktes om te winnen.
 
 Elke Pokémon heeft:
-- ❤️ HP (health points)
-- ⚡ Attack kracht
-- 🛡️ Defense
+- 🩸 HP (health points)
+- 🔥 Type
+- ⚠️ Weakness
 
 Gebruik je aanvallen slim en win de battle!
 
