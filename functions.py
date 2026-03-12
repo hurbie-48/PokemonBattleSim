@@ -109,13 +109,13 @@ def show_player_stats(player:Player) -> None:
     # Print alle pokemons die een speler heeft
     print(f"{player.name} heeft op dit moment ${player.money} en de volgende pokemon: \n")
     for pokemon in player.pokemon:
-        print(f"{pokemon}")
+        print(f"{pokemon.name}, Lvl: {pokemon.level}, Att: {pokemon.attack}, Def: {pokemon.defense}")
 
 def show_trainer_stats(trainer:Trainer) -> None:
     print(f"Naam: {trainer.name}\nBeschrijving: {trainer.description}\nPrijzengeld: {trainer.price_money}")
     print(f"{trainer.name} heeft de volgende pokemon:")
     for pokemon in trainer.pokemon:
-        print(f"{pokemon}")
+        print(f"{pokemon.name}, Lvl: {pokemon.level}, Att: {pokemon.attack}, Def: {pokemon.defense}")
 
 def show_all_trainers(trainers:list[Trainer]) -> None:
     print("Hier zijn de bestaande trainers:\n-----\n")
@@ -136,7 +136,19 @@ def check_trainer(trainer_name:str, trainers:list[Trainer]) -> Trainer | bool:
             return trainer
     return False
 
-def show_pokemon_stats(pokemon:Pokemon, player:Player) -> None:
-    print(f"Hier zijn de stats voor: {pokemon.name} ({pokemon.level})")
-    print(f"De pokemon is van {player.name}")
-    print(f"Hp: {pokemon.hp}\nAttack: {pokemon.attack}\nDefense: {pokemon.defense}")
+def load_trainers_from_json(file_path: str) -> list[Trainer]:
+    with open(file_path, "r") as f:
+        data = json.load(f)
+
+    trainers_list = []
+    for name, info in data["trainers"].items():
+        pokemon_team = get_random_pokemon(6)
+        new_trainer = create_new_trainer(
+            name=name,
+            description=info["description"],
+            pokemon=pokemon_team,
+            price_money=info["prize_money"]
+        )
+        trainers_list.append(new_trainer)
+
+    return trainers_list
