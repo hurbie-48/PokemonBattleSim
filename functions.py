@@ -180,7 +180,7 @@ def ask_trainer(msg:str) -> str:
     trainer_name = input(msg)
     return trainer_name
 
-def check_trainer(trainer_name:str, trainers:list[Trainer]) -> Trainer | bool:
+def check_trainer(trainer_name:str, trainers:list[Trainer]) -> Trainer:
     for trainer in trainers:
         if trainer.name.lower() == trainer_name.lower():
             return trainer
