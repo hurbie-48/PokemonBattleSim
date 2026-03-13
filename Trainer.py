@@ -10,3 +10,9 @@ class Trainer:
 
     def __repr__(self):
         return f"{self.name}"
+    
+    def get_active_pokemon(self) -> Pokemon:
+        for p in self.pokemon:
+            if p.is_alive():
+                return p
+        return None

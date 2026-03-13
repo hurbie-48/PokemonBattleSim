@@ -15,4 +15,4 @@ while not selected_trainer:
     selected_trainer = check_trainer(chosen_name, trainers)
 print(f"Je hebt gekozen voor trainer {selected_trainer.name}. Veel succes met de battle!")
 show_player_stats(player)
-fight(player, selected_trainer)
+battle(player, selected_trainer)
