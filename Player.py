@@ -1,8 +1,7 @@
 from Pokemon import Pokemon
 
-
 class Player:
-    def __init__(self, name:str, pokemon:list[Pokemon], money:int):
+    def __init__(self, name: str, pokemon: list[Pokemon], money: int):
         self.name = name
         self.money = money
         self.pokemon = pokemon
@@ -15,3 +14,6 @@ class Player:
             if p.is_alive():
                 return p
         return None
+
+    def has_usable_pokemon(self) -> bool:
+        return any(p.is_alive() for p in self.pokemon)

@@ -1,20 +1,19 @@
 class Pokemon:
-    def __init__(self, name: str, level: int, hp:int, attack:int, defense:int):
+    def __init__(self, name: str, level: int, hp: int, attack: int, defense: int, speed: int):
         self.name = name
         self.level = level
+        self.max_hp = hp
         self.hp = hp
         self.attack = attack
         self.defense = defense
+        self.speed = speed
+        self.moves = ["Tackle", "Tail Whip", "Ember"]
 
-    def __repr__(self):
-        return f"{self.name} (Lvl {self.level})"
-    
     def is_alive(self) -> bool:
         return self.hp > 0
-    
+
     def is_fainted(self) -> bool:
         return self.hp <= 0
-    
-    def speed(self) -> int:
-        # Simple speed calculation based on level and attack
-        return self.level * 2 + self.attack
+
+    def __repr__(self):
+        return f"{self.name} (HP: {self.hp}/{self.max_hp})"

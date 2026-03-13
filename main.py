@@ -1,21 +1,40 @@
 from functions import *
-clear_screen()
-welcome()
-name = ask_name("Wat is uw naam? ")
-player_pokemon = get_random_pokemon(6)
-player = create_new_player(name, player_pokemon, 20)
-show_player_stats(player)
-trainers = load_trainers_from_json("trainers.json")
-show_all_trainers(trainers)
-chosen_name = ask_trainer("Kies een trainer (typ de naam): ")
-selected_trainer = check_trainer(chosen_name, trainers)
-while not selected_trainer:
-    print(color_text("Deze trainer bestaat niet. Probeer het opnieuw.", "red"))
-    chosen_name = ask_trainer("Kies een trainer (typ de naam): ")
-    selected_trainer = check_trainer(chosen_name, trainers)
-print(f"Je hebt gekozen voor trainer {selected_trainer.name}. Veel succes met de battle!")
 
-battle(player, selected_trainer)
-player.money += get_money_reward(selected_trainer)
+def start_game():
+    clear_screen()
+    welcome()
+    
+    name = ask_name("Wat is uw naam? ")
+    player = Player(name, get_random_pokemon(6), 20)
+    trainers = load_trainers_from_json("trainers.json")
 
-print(f"Je hebt {color_text(f'${selected_trainer.price_money}', 'yellow')} gewonnen! Je huidige geld: {color_text(f'${player.money}', 'yellow')}")
+    playing = True
+    while playing and any(not t.is_beaten for t in trainers):
+        show_player_stats(player)
+        show_all_trainers(trainers)
+        
+        chosen_name = input("\nKies een trainer om te vechten (of 'stop'): ")
+        if chosen_name.lower() == 'stop': break
+            
+        selected_trainer = next((t for t in trainers if t.name.lower() == chosen_name.lower() and not t.is_beaten), None)
+        
+        if selected_trainer:
+            victory = battle(player, selected_trainer)
+
+            if victory:
+                selected_trainer.is_beaten = True # Mark as beaten
+                reward = get_money_reward(selected_trainer)
+                player.money += reward
+                print(f"Je hebt {color_text(f'${reward}', 'yellow')} gewonnen!")
+                # Update the list to remove beaten trainers
+                trainers = [t for t in trainers if not t.is_beaten] 
+            else:
+                print(color_text("Je hebt geen bruikbare Pokémon meer! Je hebt verloren.", "red"))
+                # You could end the game here or send the player to a Pokemon Center
+        else:
+            print(color_text("Trainer niet gevonden of al verslagen.", "red"))
+
+    print("\nBedankt voor het spelen!")
+
+if __name__ == "__main__":
+    start_game()
