@@ -202,3 +202,8 @@ def load_trainers_from_json(file_path: str) -> list[Trainer]:
         trainers_list.append(new_trainer)
 
     return trainers_list
+
+def fight(player: Player, trainer: Trainer) -> None:
+    # Placeholder for the battle logic
+    print(f"De battle tussen {player.name} en {trainer.name} begint nu!")
+    
