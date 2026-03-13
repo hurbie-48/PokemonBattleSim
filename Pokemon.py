@@ -8,3 +8,13 @@ class Pokemon:
 
     def __repr__(self):
         return f"{self.name} (Lvl {self.level})"
+    
+    def is_alive(self) -> bool:
+        return self.hp > 0
+    
+    def is_fainted(self) -> bool:
+        return self.hp <= 0
+    
+    def speed(self) -> int:
+        # Simple speed calculation based on level and attack
+        return self.level * 2 + self.attack

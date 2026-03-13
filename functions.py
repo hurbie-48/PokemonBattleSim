@@ -203,7 +203,50 @@ def load_trainers_from_json(file_path: str) -> list[Trainer]:
 
     return trainers_list
 
-def fight(player: Player, trainer: Trainer) -> None:
-    # Placeholder for the battle logic
-    print(f"De battle tussen {player.name} en {trainer.name} begint nu!")
+
+
+def battle(player: Player, trainer: Trainer) -> None:
+    print(f"--- De battle tussen {player.name} en {trainer.name} begint! ---")
     
+    # We pakken de eerste beschikbare Pokémon van beiden
+    p_poke = player.get_active_pokemon()
+    t_poke = trainer.get_active_pokemon()
+
+    print(f"{player.name} stuurt {p_poke.name} in!")
+    print(f"{trainer.name} stuurt {t_poke.name} in!")
+
+    while p_poke.is_fainted() == False and t_poke.is_fainted() == False:
+        # Bepaal de volgorde op basis van speed
+        pokemon_speed = p_poke.speed()
+        trainer_speed = t_poke.speed()
+        if pokemon_speed >= trainer_speed:
+            first, second = (p_poke, t_poke), (t_poke, p_poke)
+        else:
+            first, second = (t_poke, p_poke), (p_poke, t_poke)
+
+        # Eerste beurt
+        execute_turn(first[0], first[1])
+        
+        # Controleer of het gevecht voorbij is na de eerste klap
+        if first[1].is_fainted():
+            print(f"{first[1].name} is uitgeschakeld!")
+            break
+
+        # Tweede beurt
+        execute_turn(second[0], second[1])
+        
+        if second[1].is_fainted():
+            print(f"{second[1].name} is uitgeschakeld!")
+
+    print("--- Het gevecht is beëindigd! ---")
+
+def execute_turn(attacker, defender) -> None:
+    # Een simpele berekening voor schade
+    damage = attacker.attack - (defender.defense // 2)
+    damage = max(damage, 1) # Altijd minimaal 1 schade
+    
+    defender.hp -= damage
+    print(f"{attacker.name} valt aan en doet {damage} schade! ({defender.name} HP: {max(defender.hp, 0)})")
+
+def get_money_reward(trainer: Trainer) -> int:
+    return trainer.price_money

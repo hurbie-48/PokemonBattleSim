@@ -14,5 +14,8 @@ while not selected_trainer:
     chosen_name = ask_trainer("Kies een trainer (typ de naam): ")
     selected_trainer = check_trainer(chosen_name, trainers)
 print(f"Je hebt gekozen voor trainer {selected_trainer.name}. Veel succes met de battle!")
-show_player_stats(player)
-fight(player, selected_trainer)
+
+battle(player, selected_trainer)
+player.money += get_money_reward(selected_trainer)
+
+print(f"Je hebt {color_text(f'${selected_trainer.price_money}', 'yellow')} gewonnen! Je huidige geld: {color_text(f'${player.money}', 'yellow')}")
