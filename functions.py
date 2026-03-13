@@ -247,3 +247,6 @@ def execute_turn(attacker, defender) -> None:
     
     defender.hp -= damage
     print(f"{attacker.name} valt aan en doet {damage} schade! ({defender.name} HP: {max(defender.hp, 0)})")
+
+def get_money_reward(trainer: Trainer) -> int:
+    return trainer.price_money
