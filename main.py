@@ -22,15 +22,13 @@ def start_game():
             victory = battle(player, selected_trainer)
 
             if victory:
-                selected_trainer.is_beaten = True # Mark as beaten
+                selected_trainer.is_beaten = True
                 reward = get_money_reward(selected_trainer)
                 player.money += reward
                 print(f"Je hebt {color_text(f'${reward}', 'yellow')} gewonnen!")
-                # Update the list to remove beaten trainers
                 trainers = [t for t in trainers if not t.is_beaten] 
             else:
                 print(color_text("Je hebt geen bruikbare Pokémon meer! Je hebt verloren.", "red"))
-                # You could end the game here or send the player to a Pokemon Center
         else:
             print(color_text("Trainer niet gevonden of al verslagen.", "red"))
 

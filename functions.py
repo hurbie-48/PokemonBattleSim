@@ -49,7 +49,6 @@ def show_player_stats(player: Player) -> None:
     print("-" * 55 + "\n")
 
 def choose_pokemon(player: Player) -> Pokemon:
-    """Lets the player choose an alive Pokemon from their team."""
     show_player_stats(player)
     while True:
         try:
@@ -72,7 +71,6 @@ def execute_turn(attacker, defender, move_name: str) -> None:
 def battle(player, trainer) -> bool:
     print(color_text(f"\n--- DE BATTLE TUSSEN {player.name} EN {trainer.name} BEGINT! ---", "bold"))
     
-    # Player chooses their first Pokemon
     print(f"\n{trainer.name} daagt je uit! Kies je eerste Pokémon.")
     p_poke = choose_pokemon(player)
     t_poke = trainer.get_active_pokemon()
@@ -81,7 +79,6 @@ def battle(player, trainer) -> bool:
     print(f"{trainer.name} stuurt {color_text(t_poke.name, 'red')} in!")
 
     while player.has_usable_pokemon() and trainer.has_usable_pokemon():
-        # Inner loop for current 1v1
         while p_poke.is_alive() and t_poke.is_alive():
             print(f"\n{color_text(p_poke.name, 'cyan')} HP: {max(0, p_poke.hp)}/{p_poke.max_hp}")
             print(f"{color_text(t_poke.name, 'red')} HP: {max(0, t_poke.hp)}/{t_poke.max_hp}")
@@ -103,7 +100,6 @@ def battle(player, trainer) -> bool:
                 if p_poke.is_alive():
                     execute_turn(p_poke, t_poke, player_move)
 
-        # Handle faint scenarios
         if t_poke.is_fainted():
             print(color_text(f"\n{t_poke.name} van {trainer.name} is verslagen!", "green"))
             if trainer.has_usable_pokemon():
@@ -122,7 +118,6 @@ def battle(player, trainer) -> bool:
         return True
     return False
 
-# Rest of the helper functions remain the same as your provided code
 def calculate_pokemon_stats(level: int) -> dict:
     base, iv = 50, 31
     inner = math.floor((2 * base + iv) * level / 100)
@@ -178,5 +173,4 @@ def ask_name(msg: str) -> str:
     return name
 
 def get_money_reward(trainer: Trainer) -> int:
-    """Returns the prize money from the trainer."""
     return trainer.price_money
