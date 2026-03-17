@@ -18,7 +18,7 @@ def color_text(text: str, color: str) -> str:
 def welcome() -> None:
     print("""
 ╔══════════════════════════════════════════════╗
-║              ⚔️ POKÉMON BATTLE SIM ⚔️        ║
+║              ⚔️ POKÉMON BATTLE SIM ⚔️          ║
 ╚══════════════════════════════════════════════╝
 
 Welkom trainer!
