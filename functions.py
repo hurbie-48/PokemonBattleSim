@@ -49,17 +49,27 @@ def show_player_stats(player: Player) -> None:
     print("-" * 55 + "\n")
 
 def choose_pokemon(player: Player) -> Pokemon:
+    # Toon eerst de huidige status van alle pokemon
     show_player_stats(player)
+    
     while True:
         try:
+            # Vraag de gebruiker om een getal
             keuze = int(input(f"Welke Pokémon kies je? (1-{len(player.pokemon)}): "))
+            
+            # Haal de Pokémon uit de lijst
             selected = player.pokemon[keuze-1]
+            
+            # Controleer of de Pokémon nog kan vechten
             if selected.is_alive():
                 return selected
             else:
                 print(color_text("Deze Pokémon is flauwgevallen! Kies een andere.", "red"))
+        
+        # Voorkom dat de game crasht bij letters (ValueError) of getallen buiten de lijst (IndexError)
         except (ValueError, IndexError):
             print(color_text("Ongeldige keuze. Voer een nummer in uit de lijst.", "red"))
+
 
 def execute_turn(attacker, defender, move_name: str) -> None:
     damage = max(1, attacker.attack - (defender.defense // 2))
