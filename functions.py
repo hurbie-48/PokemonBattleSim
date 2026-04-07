@@ -1,176 +1,126 @@
-import os
+import pygame
 import random
 import json
-import math
+import os
 
-from Trainer import Trainer
-from Player import Player
-from Pokemon import Pokemon
+# --- 1. INITIALISATIE & CLASSES ---
+pygame.init()
+WIDTH, HEIGHT = 800, 600
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Pokémon Battle Simulator")
+clock = pygame.time.Clock()
 
-def color_text(text: str, color: str) -> str:
-    colors = {
-        "red": "\033[91m", "green": "\033[92m", "yellow": "\033[93m",
-        "blue": "\033[94m", "magenta": "\033[95m", "cyan": "\033[96m",
-        "gold": "\033[93m", "bold": "\033[1m", "reset": "\033[0m"
-    }
-    return f"{colors.get(color, colors['reset'])}{text}{colors['reset']}"
+# Kleuren & Fonts
+WHITE, BLACK, GRAY = (255, 255, 255), (0, 0, 0), (200, 200, 200)
+BLUE, GOLD, RED = (0, 102, 204), (255, 215, 0), (200, 0, 0)
+font_title = pygame.font.SysFont("arial", 50, bold=True)
+font_std = pygame.font.SysFont("arial", 22)
+font_bold = pygame.font.SysFont("arial", 22, bold=True)
 
-def welcome() -> None:
-    print("""
-╔══════════════════════════════════════════════╗
-║              ⚔️ POKÉMON BATTLE SIM ⚔️          ║
-╚══════════════════════════════════════════════╝
+# --- 2. GAME STATE MANAGER ---
+class GameState:
+    MENU = 0
+    TRAINER_SELECT = 1
+    BATTLE = 2
+    GAME_OVER = 3
 
-Welkom trainer!
+class Game:
+    def __init__(self):
+        self.state = GameState.MENU
+        self.money = 20
+        self.player_name = ""
+        self.trainers = self.load_trainers()
+        self.selected_trainer = None
+        self.player_team = self.get_random_team(6)
+        
+    def load_trainers(self):
+        # Dummy data gebaseerd op jouw JSON structuur
+        return [
+            {"name": "Joey", "desc": "Houdt van Rattata", "bounty": 100, "beaten": False},
+            {"name": "Brock", "desc": "Rots-vaste trainer", "bounty": 500, "beaten": False},
+            {"name": "Misty", "desc": "Water-specialist", "bounty": 450, "beaten": False}
+        ]
 
-In deze Pokémon Battle Simulator neem jij het op
-tegen een andere trainer in een spannende battle.
+    def get_random_team(self, count):
+        # Hier laad je normaal je Pokemon class
+        return [{"name": "Starter", "hp": 100, "max_hp": 100} for _ in range(count)]
 
-Je krijgt een random team van 6 Pokémon, 
-elk met unieke stats en vaardigheden.
-Kies je aanvallen verstandig en probeer
-je tegenstander te verslaan!
+game = Game()
 
-Maak je klaar trainer...
-De battle gaat beginnen!
-""")
+# --- 3. SCHERM FUNCTIES ---
 
-def show_player_stats(player: Player) -> None:
-    print("-" * 55)
-    header_text = f"{player.name} | Balance: ${player.money}"
-    print(color_text(header_text.center(55), "blue"))
-    print("-" * 55)
-    print(f"{'#':<2} {'Pokemon':<15} | {'Lvl':<4} | {'HP':<10} | {'Atk':<5} | {'Def':<5}")
-    print("~" * 55)
-    for i, p in enumerate(player.pokemon):
-        status_color = "cyan" if p.is_alive() else "red"
-        hp_text = f"{max(0, p.hp)}/{p.max_hp}"
-        print(f"{i+1:<2} {color_text(f'{p.name:<15}', status_color)} | {p.level:<4} | {hp_text:<10} | {p.attack:<5} | {p.defense:<5}")
-    print("-" * 55 + "\n")
+def draw_welcome():
+    screen.fill(BLUE)
+    title = font_title.render("POKÉMON BATTLE SIM", True, WHITE)
+    instr = font_std.render("Druk op SPATIE om de trainer naam in te voeren", True, WHITE)
+    screen.blit(title, (WIDTH//2 - title.get_width()//2, 200))
+    screen.blit(instr, (WIDTH//2 - instr.get_width()//2, 400))
 
-def choose_pokemon(player: Player) -> Pokemon:
-    show_player_stats(player)
-    while True:
-        try:
-            keuze = int(input(f"Welke Pokémon kies je? (1-{len(player.pokemon)}): "))
-            selected = player.pokemon[keuze-1]
-            if selected.is_alive():
-                return selected
-            else:
-                print(color_text("Deze Pokémon is flauwgevallen! Kies een andere.", "red"))
-        except (ValueError, IndexError):
-            print(color_text("Ongeldige keuze. Voer een nummer in uit de lijst.", "red"))
-
-def execute_turn(attacker, defender, move_name: str) -> None:
-    damage = max(1, attacker.attack - (defender.defense // 2))
-    defender.hp -= damage
-    atk_display = color_text(attacker.name, "yellow")
-    move_display = color_text(move_name, "bold")
-    print(f"{atk_display} gebruikt {move_display}! {defender.name} verliest {damage} HP.")
-
-def battle(player, trainer) -> bool:
-    print(color_text(f"\n--- DE BATTLE TUSSEN {player.name} EN {trainer.name} BEGINT! ---", "bold"))
+def draw_trainer_select():
+    screen.fill((240, 240, 240))
+    header = font_bold.render(f"Welkom Trainer! | Geld: ${game.money}", True, BLACK)
+    screen.blit(header, (50, 30))
     
-    print(f"\n{trainer.name} daagt je uit! Kies je eerste Pokémon.")
-    p_poke = choose_pokemon(player)
-    t_poke = trainer.get_active_pokemon()
+    subtitle = font_std.render("Kies een trainer om uit te dagen:", True, BLACK)
+    screen.blit(subtitle, (50, 70))
 
-    print(f"\n{player.name} stuurt {color_text(p_poke.name, 'cyan')} in!")
-    print(f"{trainer.name} stuurt {color_text(t_poke.name, 'red')} in!")
-
-    while player.has_usable_pokemon() and trainer.has_usable_pokemon():
-        while p_poke.is_alive() and t_poke.is_alive():
-            print(f"\n{color_text(p_poke.name, 'cyan')} HP: {max(0, p_poke.hp)}/{p_poke.max_hp}")
-            print(f"{color_text(t_poke.name, 'red')} HP: {max(0, t_poke.hp)}/{t_poke.max_hp}")
+    for i, t in enumerate(game.trainers):
+        if not t["beaten"]:
+            rect = pygame.Rect(50, 120 + (i * 90), 700, 70)
+            pygame.draw.rect(screen, WHITE, rect, border_radius=10)
+            pygame.draw.rect(screen, BLACK, rect, 2, border_radius=10)
             
-            print("\nWat wil je doen?")
-            for i, move in enumerate(p_poke.moves):
-                print(f"{i+1}. {move}")
+            name_txt = font_bold.render(f"TRAINER: {t['name']}", True, BLUE)
+            desc_txt = font_std.render(t["desc"], True, BLACK)
+            bounty_txt = font_bold.render(f"${t['bounty']}", True, (150, 150, 0))
             
-            keuze = input("Kies een move (1-3): ")
-            move_index = int(keuze) - 1 if keuze.isdigit() and 1 <= int(keuze) <= 3 else 0
-            player_move = p_poke.moves[move_index]
+            screen.blit(name_txt, (70, 130 + (i * 90)))
+            screen.blit(desc_txt, (70, 155 + (i * 90)))
+            screen.blit(bounty_txt, (680, 140 + (i * 90)))
+            t["rect"] = rect # Opslaan voor klik-detectie
 
-            if p_poke.speed >= t_poke.speed:
-                execute_turn(p_poke, t_poke, player_move)
-                if t_poke.is_alive():
-                    execute_turn(t_poke, p_poke, random.choice(t_poke.moves))
-            else:
-                execute_turn(t_poke, p_poke, random.choice(t_poke.moves))
-                if p_poke.is_alive():
-                    execute_turn(p_poke, t_poke, player_move)
+def draw_battle_placeholder():
+    screen.fill(BLACK)
+    txt = font_title.render(f"BATTLE VS {game.selected_trainer['name']}", True, RED)
+    screen.blit(txt, (WIDTH//2 - txt.get_width()//2, 200))
+    instr = font_std.render("Druk op 'W' om te winnen (test)", True, WHITE)
+    screen.blit(instr, (WIDTH//2 - instr.get_width()//2, 400))
 
-        if t_poke.is_fainted():
-            print(color_text(f"\n{t_poke.name} van {trainer.name} is verslagen!", "green"))
-            if trainer.has_usable_pokemon():
-                t_poke = trainer.get_active_pokemon()
-                print(f"{trainer.name} stuurt {color_text(t_poke.name, 'red')} in!")
+# --- 4. DE HOOFD LOOP ---
+running = True
+while running:
+    mouse_pos = pygame.mouse.get_pos()
+    
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+            
+        if event.type == pygame.KEYDOWN:
+            if game.state == GameState.MENU and event.key == pygame.K_SPACE:
+                game.state = GameState.TRAINER_SELECT
+            
+            if game.state == GameState.BATTLE:
+                if event.key == pygame.K_w: # Simulatie van winst
+                    game.money += game.selected_trainer["bounty"]
+                    game.selected_trainer["beaten"] = True
+                    game.state = GameState.TRAINER_SELECT
 
-        if p_poke.is_fainted():
-            print(color_text(f"\n{p_poke.name} is uitgeschakeld!", "red"))
-            if player.has_usable_pokemon():
-                print("Kies een nieuwe Pokémon om verder te vechten.")
-                p_poke = choose_pokemon(player)
-                print(f"{player.name} stuurt {color_text(p_poke.name, 'cyan')} in!")
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if game.state == GameState.TRAINER_SELECT:
+                for t in game.trainers:
+                    if not t["beaten"] and t["rect"].collidepoint(mouse_pos):
+                        game.selected_trainer = t
+                        game.state = GameState.BATTLE
 
-    if player.has_usable_pokemon():
-        print(color_text(f"\nGEFELICITEERD! Je hebt {trainer.name} verslagen!", "gold"))
-        return True
-    return False
+    # Teken logica op basis van de State
+    if game.state == GameState.MENU:
+        draw_welcome()
+    elif game.state == GameState.TRAINER_SELECT:
+        draw_trainer_select()
+    elif game.state == GameState.BATTLE:
+        draw_battle_placeholder() # Vervang dit door je battle_sim code
 
-def calculate_pokemon_stats(level: int) -> dict:
-    base, iv = 50, 31
-    inner = math.floor((2 * base + iv) * level / 100)
-    return {
-        "hp": inner + level + 10, "attack": inner + 5,
-        "defense": inner + 5, "speed": inner + 5 
-    }
+    pygame.display.flip()
+    clock.tick(60)
 
-def clear_screen() -> None:
-    os.system("cls") if os.name == "nt" else os.system("clear")
-
-def get_random_pokemon(count: int) -> list[Pokemon]:
-    try:
-        with open("pokemon.json", "r") as f:
-            data = json.load(f)
-        names = [p["name"] for p in data]
-    except FileNotFoundError:
-        names = ["Bulbasaur", "Charmander", "Squirtle"]
-
-    team = []
-    for _ in range(count):
-        lvl = random.randint(2, 5)
-        stats = calculate_pokemon_stats(lvl)
-        team.append(Pokemon(random.choice(names), lvl, stats["hp"], stats["attack"], stats["defense"], stats["speed"]))
-    return team
-
-def load_trainers_from_json(file_path: str) -> list[Trainer]:
-    try:
-        with open(file_path, "r") as f:
-            data = json.load(f)
-        trainers_list = []
-        for name, info in data["trainers"].items():
-            new_trainer = Trainer(name, info["description"], get_random_pokemon(3), info["prize_money"])
-            trainers_list.append(new_trainer)
-        return trainers_list
-    except: return []
-
-def show_all_trainers(trainers: list[Trainer]) -> None:
-    print("Hier zijn de beschikbare trainers:\n")
-    for t in trainers:
-        if not t.is_beaten:
-            print("-" * 55)
-            print(color_text(f"TRAINER: {t.name}".center(55), "bold"))
-            print(f"Info: {t.description}")
-            print(f"Bounty: {color_text(f'${t.price_money}', 'yellow')}")
-            print("-" * 55)
-
-def ask_name(msg: str) -> str:
-    name = input(msg)
-    while not (1 < len(name) < 16 and not any(char.isdigit() for char in name)):
-        print(color_text("Vul a.u.b een naam in van 2-15 karakters zonder cijfers.", "red"))
-        name = input(msg)
-    return name
-
-def get_money_reward(trainer: Trainer) -> int:
-    return trainer.price_money
+pygame.quit()
