@@ -8,193 +8,201 @@ import sys
 pygame.init()
 WIDTH, HEIGHT = 800, 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Pokémon Battle: Trainer Edition")
+pygame.display.set_caption("Pokémon Battle: JSON Data Edition")
 clock = pygame.time.Clock()
 
 # Kleuren
 BG_LIGHT, HEADER_BLUE, WHITE = (240, 242, 245), (28, 100, 242), (255, 255, 255)
 TEXT_DARK, ACCENT_GOLD = (17, 24, 39), (255, 191, 0)
 SUCCESS_GREEN, DANGER_RED = (49, 196, 141), (249, 128, 128)
-GRAY_TEXT = (75, 85, 99) # Iets donkerder voor betere leesbaarheid
+GRAY_TEXT = (75, 85, 99)
 
-# Fonts
+# --- 2. ASSETS & FONTS ---
 font_main = pygame.font.SysFont("segoe ui", 20, bold=True)
 font_title = pygame.font.SysFont("segoe ui", 32, bold=True)
 font_desc = pygame.font.SysFont("segoe ui", 16, italic=True)
 font_small = pygame.font.SysFont("segoe ui", 14)
 
-# --- 2. DATA & ASSETS ---
 def load_battle_background():
-    bg_path = "assets/background.png"
-    if os.path.exists(bg_path):
-        img = pygame.image.load(bg_path).convert()
+    path = "assets/background.png"
+    if os.path.exists(path):
+        img = pygame.image.load(path).convert()
         return pygame.transform.scale(img, (800, 450))
     return None
 
 battle_bg_img = load_battle_background()
 
-def load_data():
-    try:
-        with open("pokemon.json", "r") as f: db = json.load(f)
-        with open("trainers.json", "r") as f: t_data = json.load(f)
-        return db, t_data
-    except Exception as e:
-        print(f"Laadfout: {e}")
-        return [], {"trainers": {}}
+# --- 3. LOGICA FUNCTIES ---
+
+def get_move_type(move_name):
+    """Bepaalt het type van een move voor de zwakte-check."""
+    fire = ["Ember", "Flamethrower", "Fire Blast"]
+    water = ["Water Gun", "Surf", "Hydro Pump"]
+    grass = ["Vine Whip", "Razor Leaf", "Solar Beam"]
+    elec = ["Thunder Shock", "Thunderbolt"]
+    
+    if move_name in fire: return "Fire"
+    if move_name in water: return "Water"
+    if move_name in grass: return "Grass"
+    if move_name in elec: return "Electric"
+    return "Normal"
+
+def calculate_damage(move_name, defender_pokemon):
+    """Berekent schade gebaseerd op de 'weaknesses' lijst in jouw JSON."""
+    move_type = get_move_type(move_name)
+    multiplier = 1.0
+    
+    # Check of de move type in de lijst van zwaktes staat
+    if move_type in defender_pokemon.get("weaknesses", []):
+        multiplier = 2.0
+        msg = "Super effectief!"
+    else:
+        msg = ""
+        
+    base_dmg = random.randint(20, 30)
+    return int(base_dmg * multiplier), msg
+
+def get_moves_by_type(p_types):
+    """Geeft moves die passen bij het type uit de JSON."""
+    if "Fire" in p_types: return ["Ember", "Flamethrower", "Quick Attack", "Tackle"]
+    if "Water" in p_types: return ["Water Gun", "Surf", "Bubble", "Tackle"]
+    if "Grass" in p_types: return ["Vine Whip", "Razor Leaf", "Absorb", "Tackle"]
+    return ["Tackle", "Quick Attack", "Slam", "Scratch"]
 
 def get_poke(base, diff):
+    """Vertaalt JSON data naar een speelbare Pokémon."""
     p = base.copy()
-    hp = 100
-    if diff == "Hard": hp = 180
-    if diff == "Impossible": hp = 600
-    p["name"] = str(p.get("name", "Onbekend"))
-    p.update({"max_hp": hp, "current_hp": hp, "moves": ["Tackle", "Bite", "Beam", "Pulse"]})
+    hp = 120 if diff != "Hard" else 220
+    p.update({
+        "max_hp": hp, 
+        "current_hp": hp, 
+        "moves": get_moves_by_type(p.get("type", ["Normal"]))
+    })
+    
+    # Laad de sprite op basis van het num (bijv. assets/001.png)
     path = f"assets/{p['num']}.png"
     if os.path.exists(path):
         img = pygame.image.load(path).convert_alpha()
         p["sprite"] = pygame.transform.scale(img, (220, 220))
     else:
+        # Fallback cirkel als de afbeelding mist
         p["sprite"] = pygame.Surface((200, 200), pygame.SRCALPHA)
+        pygame.draw.circle(p["sprite"], (200, 200, 200), (100, 100), 80)
     return p
 
-# --- 3. BATTLE MANAGER ---
+# --- 4. BATTLE CLASS ---
 class Battle:
     def __init__(self, player_team, t_name, t_info, db):
         self.player_team = player_team
-        self.trainer_name = t_name
         self.difficulty = t_info.get("difficulty", "Easy")
-        self.prize_money = t_info.get("prize_money", 0)
+        # Kies 6 willekeurige vijanden uit jouw nieuwe JSON lijst
         self.enemy_team = [get_poke(random.choice(db), self.difficulty) for _ in range(6)]
         self.p_idx, self.e_idx = 0, 0
-        self.log = f"Gevecht tegen {t_name} gestart!"
+        self.log = f"Gevecht tegen {t_name}!"
         self.finished, self.winner = False, None
+        self.prize_money = t_info.get("prize_money", 0)
 
     def turn(self, move):
         if self.finished: return
         p, e = self.player_team[self.p_idx], self.enemy_team[self.e_idx]
         
-        # Player Attack
-        dmg = random.randint(25, 40)
+        # Speler valt aan
+        dmg, msg = calculate_damage(move, e)
         e["current_hp"] -= dmg
-        self.log = f"{p['name']} valt aan met {move}!"
+        self.log = f"{p['name']} gebruikt {move}! {msg}"
 
         if e["current_hp"] <= 0:
             e["current_hp"] = 0
             self.e_idx += 1
-            if self.e_idx >= 6:
-                self.finished, self.winner = True, "player"
-                self.log = "Overwinning! Je krijgt het prijzengeld."
+            if self.e_idx >= 6: self.finished, self.winner = True, "player"
             return
 
-        # Enemy Attack
-        dmg_e = random.randint(15, 30)
+        # Vijand valt aan
+        e_move = random.choice(e["moves"])
+        dmg_e, msg_e = calculate_damage(e_move, p)
         p["current_hp"] -= dmg_e
         if p["current_hp"] <= 0:
             p["current_hp"] = 0
             self.p_idx += 1
-            if self.p_idx >= 6:
-                self.finished, self.winner = True, "enemy"
-                self.log = "Helaas... Je team is verslagen."
+            if self.p_idx >= 6: self.finished, self.winner = True, "enemy"
 
-# --- 4. INITIAL SETUP ---
+# --- 5. DATA LADEN & START ---
+def load_data():
+    try:
+        with open("pokemon.json", "r") as f: db = json.load(f)
+        with open("trainers.json", "r") as f: t_data = json.load(f)
+        return db, t_data
+    except:
+        print("Bestanden niet gevonden!")
+        return [], {"trainers": {}}
+
 db, trainers_json = load_data()
+# Maak een team van 6 voor de speler uit jouw JSON
 player_team = [get_poke(random.choice(db), "Easy") for _ in range(6)]
+
 current_state = "MENU"
-scroll_y, wallet_money, active_battle = 0, 0, None
+scroll_y, wallet, active_battle = 0, 0, None
 max_scroll = min(0, HEIGHT - (len(trainers_json.get("trainers", {})) * 130) - 120)
 
-# --- 5. MAIN LOOP ---
+# --- 6. MAIN LOOP ---
 while True:
     screen.fill(BG_LIGHT)
     mouse = pygame.mouse.get_pos()
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT: pygame.quit(); sys.exit()
-        
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 4: scroll_y = min(0, scroll_y + 50)
             if event.button == 5: scroll_y = max(max_scroll, scroll_y - 50)
-            
             if event.button == 1:
                 if current_state == "MENU":
                     for i, (name, info) in enumerate(trainers_json.get("trainers", {}).items()):
                         rect = pygame.Rect(50, 110 + i*130 + scroll_y, 700, 110)
-                        if rect.collidepoint(mouse) and rect.top > 85:
+                        if rect.collidepoint(mouse) and rect.top > 90:
                             active_battle = Battle(player_team, name, info, db)
                             current_state = "BATTLE"
                 elif current_state == "BATTLE":
                     if active_battle.finished:
-                        if active_battle.winner == "player": 
-                            wallet_money += active_battle.prize_money
-                        for p in player_team: p["current_hp"] = p["max_hp"]
+                        if active_battle.winner == "player": wallet += active_battle.prize_money
+                        for pk in player_team: pk["current_hp"] = pk["max_hp"]
                         current_state = "MENU"
                     else:
                         for r, m in move_btns:
                             if r.collidepoint(mouse): active_battle.turn(m)
 
-    # --- TEKEN MENU ---
     if current_state == "MENU":
         for i, (name, info) in enumerate(trainers_json.get("trainers", {}).items()):
-            y_pos = 110 + i*130 + scroll_y
-            card_rect = pygame.Rect(50, y_pos, 700, 110)
-            
-            if card_rect.bottom > 90: # Alleen tekenen als het onder de header uitkomt
-                hover = card_rect.collidepoint(mouse) and card_rect.top > 90
-                pygame.draw.rect(screen, WHITE if not hover else (240, 248, 255), card_rect, border_radius=15)
-                pygame.draw.rect(screen, (200, 210, 230), card_rect, 2, border_radius=15)
-                
-                # Trainer Naam
-                screen.blit(font_main.render(name, True, HEADER_BLUE), (75, y_pos + 15))
-                
-                # Moeilijkheidsgraad
-                diff = info.get("difficulty", "Normal")
-                diff_col = DANGER_RED if diff in ["Hard", "Impossible"] else SUCCESS_GREEN
-                screen.blit(font_small.render(f"Niveau: {diff}", True, diff_col), (75, y_pos + 42))
-                
-                # BESCHRIJVING (Description)
-                description = info.get("description", "Een trainer die klaar is voor de strijd.")
-                # Tekst inkorten als deze te lang is voor de kaart
-                if len(description) > 75: description = description[:72] + "..."
-                screen.blit(font_desc.render(description, True, GRAY_TEXT), (75, y_pos + 68))
-                
-                # GELD (Prijs per trainer)
-                money_txt = font_title.render(f"${info.get('prize_money', 0)}", True, ACCENT_GOLD)
-                screen.blit(money_txt, (WIDTH - money_txt.get_width() - 80, y_pos + 30))
+            y = 110 + i*130 + scroll_y
+            rect = pygame.Rect(50, y, 700, 110)
+            if rect.bottom > 95:
+                hover = rect.collidepoint(mouse) and rect.top > 95
+                pygame.draw.rect(screen, WHITE if not hover else (240, 250, 255), rect, border_radius=15)
+                pygame.draw.rect(screen, (200, 210, 230), rect, 2, border_radius=15)
+                screen.blit(font_main.render(name, True, HEADER_BLUE), (75, y + 15))
+                screen.blit(font_desc.render(info.get("description", ""), True, GRAY_TEXT), (75, y + 65))
+                screen.blit(font_title.render(f"${info.get('prize_money', 0)}", True, ACCENT_GOLD), (600, y + 30))
 
-        # STICKY HEADER
         pygame.draw.rect(screen, HEADER_BLUE, (0, 0, 800, 95))
         screen.blit(font_title.render("Trainer Selectie", True, WHITE), (30, 28))
-        
-        # TOTALE WALLET GELD
-        wallet_txt = font_main.render(f"Totaal Geld: ${wallet_money}", True, ACCENT_GOLD)
+        wallet_txt = font_main.render(f"Portemonnee: ${wallet}", True, ACCENT_GOLD)
         screen.blit(wallet_txt, (WIDTH - wallet_txt.get_width() - 30, 38))
 
-    # --- TEKEN BATTLE ---
     elif current_state == "BATTLE":
         if battle_bg_img: screen.blit(battle_bg_img, (0, 0))
-        else: pygame.draw.rect(screen, (100, 150, 255), (0, 0, 800, 450))
+        else: pygame.draw.rect(screen, (135, 206, 235), (0, 0, 800, 450))
 
         p_idx, e_idx = min(active_battle.p_idx, 5), min(active_battle.e_idx, 5)
         p, e = active_battle.player_team[p_idx], active_battle.enemy_team[e_idx]
-        
         screen.blit(p["sprite"], (90, 210))
         screen.blit(pygame.transform.flip(e["sprite"], True, False), (530, 45))
 
-        # HUD Enemy
-        pygame.draw.rect(screen, WHITE, (40, 40, 260, 85), border_radius=12)
-        screen.blit(font_main.render(e["name"].upper(), True, TEXT_DARK), (55, 52))
-        pct_e = max(0, e["current_hp"] / e["max_hp"])
-        pygame.draw.rect(screen, (230, 230, 230), (55, 88, 200, 15), border_radius=8)
-        pygame.draw.rect(screen, SUCCESS_GREEN if pct_e > 0.4 else DANGER_RED, (55, 88, int(200*pct_e), 15), border_radius=8)
+        for x, y, poke in [(40, 40, e), (500, 340, p)]:
+            pygame.draw.rect(screen, WHITE, (x, y, 260, 85), border_radius=12)
+            screen.blit(font_main.render(poke["name"].upper(), True, TEXT_DARK), (x+15, y+12))
+            pct = max(0, poke["current_hp"] / poke["max_hp"])
+            pygame.draw.rect(screen, (230, 230, 230), (x+15, y+48, 200, 15), border_radius=8)
+            pygame.draw.rect(screen, SUCCESS_GREEN if pct > 0.4 else DANGER_RED, (x+15, y+48, int(200*pct), 15), border_radius=8)
 
-        # HUD Player
-        pygame.draw.rect(screen, WHITE, (500, 340, 260, 85), border_radius=12)
-        screen.blit(font_main.render(p["name"].upper(), True, TEXT_DARK), (515, 352))
-        pct_p = max(0, p["current_hp"] / p["max_hp"])
-        pygame.draw.rect(screen, (230, 230, 230), (515, 388, 200, 15), border_radius=8)
-        pygame.draw.rect(screen, SUCCESS_GREEN if pct_p > 0.4 else DANGER_RED, (515, 388, int(200*pct_p), 15), border_radius=8)
-
-        # UI ONDERIN
         pygame.draw.rect(screen, WHITE, (0, 450, 800, 150))
         pygame.draw.line(screen, HEADER_BLUE, (0, 450), (800, 450), 4)
         screen.blit(font_main.render(active_battle.log, True, HEADER_BLUE), (35, 475))
@@ -211,7 +219,7 @@ while True:
         else:
             btn = pygame.Rect(300, 500, 200, 55)
             pygame.draw.rect(screen, ACCENT_GOLD, btn, border_radius=12)
-            screen.blit(font_main.render("VERLATEN", True, WHITE), (355, 515))
+            screen.blit(font_main.render("KLAAR", True, WHITE), (365, 515))
 
     pygame.display.flip()
     clock.tick(60)
