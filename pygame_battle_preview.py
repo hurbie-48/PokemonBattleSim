@@ -147,10 +147,34 @@ def get_move_type(move_name):
         if move_name in moves: return t
     return "Normal"
 
+def get_hp_for_difficulty(diff):
+    # Geeft start/max HP op basis van trainer difficulty.
+    hp_map = {
+        "Beginner": 100,
+        "Easy": 120,
+        "Medium": 160,
+        "Medium-Hard": 200,
+        "Hard": 240,
+        "Impossible": 320
+    }
+    return hp_map.get(diff, 120)
+
+def get_enemy_damage_multiplier(diff):
+    # Schaalfactor voor vijandschade op basis van trainer difficulty.
+    dmg_map = {
+        "Beginner": 0.8,
+        "Easy": 1.0,
+        "Medium": 1.1,
+        "Medium-Hard": 1.2,
+        "Hard": 1.35,
+        "Impossible": 1.6
+    }
+    return dmg_map.get(diff, 1.0)
+
 def get_poke(base, diff):
     # Maakt een speelbare Pokémon-kopie met HP, moves en sprite op basis van moeilijkheid.
     p = base.copy()
-    hp = 120 if diff != "Hard" else 220
+    hp = get_hp_for_difficulty(diff)
     p.update({"max_hp": hp, "current_hp": hp, "moves": ["Tackle", "Quick Attack", "Slam", "Scratch"]})
     if "Fire" in p.get("type", []): p["moves"] = ["Ember", "Flamethrower", "Fire Blast", "Quick Attack"]
     elif "Water" in p.get("type", []): p["moves"] = ["Water Gun", "Surf", "Hydro Pump", "Tackle"]
@@ -164,12 +188,17 @@ def get_poke(base, diff):
         pygame.draw.circle(p["sprite"], (200, 200, 200), (100, 100), 80)
     return p
 
+def has_alive_pokemon(team):
+    # Geeft True terug als er minstens één Pokémon in het team nog HP heeft.
+    return any(pk.get("current_hp", 0) > 0 for pk in team)
+
 # --- 5. BATTLE LOGICA ---
 class Battle:
     def __init__(self, player_team, t_name, t_info, db):
         # Initialiseert gevechtsstatus, teams, beloning en UI-status voor wisselen.
         self.player_team = player_team
-        self.enemy_team = [get_poke(random.choice(db), t_info.get("difficulty", "Easy")) for _ in range(6)]
+        self.enemy_difficulty = t_info.get("difficulty", "Easy")
+        self.enemy_team = [get_poke(random.choice(db), self.enemy_difficulty) for _ in range(6)]
         self.p_idx = next((i for i, pk in enumerate(player_team) if pk["current_hp"] > 0), 0)
         self.e_idx = 0
         self.log = f"Gevecht tegen {t_name}!"
@@ -223,7 +252,7 @@ class Battle:
             return
         
         self.trigger_enemy_attack_anim()
-        dmg_in = random.randint(15, 25)
+        dmg_in = int(random.randint(15, 25) * get_enemy_damage_multiplier(self.enemy_difficulty))
         p["current_hp"] = max(0, p["current_hp"] - dmg_in)
         if p["current_hp"] <= 0:
             self.log = f"{p['name']} is verslagen! WISSEL SNEL!"
@@ -238,7 +267,7 @@ class Battle:
         p, e = self.player_team[self.p_idx], self.enemy_team[self.e_idx]
         if p["current_hp"] <= 0 or e["current_hp"] <= 0:
             return
-        dmg_in = random.randint(15, 25)
+        dmg_in = int(random.randint(15, 25) * get_enemy_damage_multiplier(self.enemy_difficulty))
         p["current_hp"] = max(0, p["current_hp"] - dmg_in)
         if p["current_hp"] <= 0:
             self.log = f"{p['name']} is verslagen! WISSEL SNEL!"
@@ -284,6 +313,13 @@ displayed_enemy_hp = None
 # Onthoudt laatste actieve indices om HP-animatie te resetten bij wissel/KO.
 last_player_idx = None
 last_enemy_idx = None
+# Gym challenge status voor meerdere gevechten achter elkaar.
+gym_active = False
+gym_queue = []
+gym_round_idx = 0
+gym_total_reward = 0
+# Scroll-offset voor de trainerlijst (pixels).
+trainer_scroll = 0
 
 # --- 7. MAIN LOOP ---
 while True:
@@ -294,11 +330,35 @@ while True:
     for event in pygame.event.get():
         # Sluit het spel netjes af bij venster-sluiting.
         if event.type == pygame.QUIT: pygame.quit(); sys.exit()
+        # Scroll met muiswiel in trainermenu.
+        if current_state == "TRAINER_MENU" and event.type == pygame.MOUSEWHEEL:
+            trainer_count = len(trainers_json.get("trainers", {}))
+            max_scroll = max(0, trainer_count * 130 - 460)
+            trainer_scroll = max(0, min(max_scroll, trainer_scroll - event.y * 35))
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if current_state == "MAIN_MENU":
                 # Kliks op het hoofdmenu sturen je naar trainerselectie of shop.
-                if pygame.Rect(275, 220, 250, 60).collidepoint(mouse): current_state = "TRAINER_MENU"
+                if pygame.Rect(275, 220, 250, 60).collidepoint(mouse) and has_alive_pokemon(player_team):
+                    trainer_scroll = 0
+                    current_state = "TRAINER_MENU"
                 if pygame.Rect(275, 300, 250, 60).collidepoint(mouse): current_state = "SHOP"
+                # Gym mode: start een reeks gevechten met oplopende beloning.
+                if pygame.Rect(275, 380, 250, 60).collidepoint(mouse):
+                    trainer_items = list(trainers_json.get("trainers", {}).items())
+                    if trainer_items and has_alive_pokemon(player_team):
+                        random.shuffle(trainer_items)
+                        gym_queue = trainer_items[:min(3, len(trainer_items))]
+                        gym_active = True
+                        gym_round_idx = 0
+                        gym_total_reward = 0
+                        name, info = gym_queue[gym_round_idx]
+                        active_battle = Battle(player_team, name, info, db)
+                        active_battle.log = f"GYM RONDE 1/{len(gym_queue)} tegen {name}!"
+                        displayed_player_hp = None
+                        displayed_enemy_hp = None
+                        last_player_idx = None
+                        last_enemy_idx = None
+                        current_state = "BATTLE"
             
             elif current_state == "SHOP":
                 # Terugknop brengt je terug naar het hoofdmenu.
@@ -320,7 +380,10 @@ while True:
                 # Klik op een trainer start een nieuwe battle tegen die trainer.
                 if pygame.Rect(20, 25, 100, 45).collidepoint(mouse): current_state = "MAIN_MENU"
                 for i, (name, info) in enumerate(trainers_json.get("trainers", {}).items()):
-                    if pygame.Rect(50, 110 + i*130, 700, 100).collidepoint(mouse):
+                    card_y = 110 + i*130 - trainer_scroll
+                    # Alleen klikbaar als de kaart echt in het zichtbare lijstgebied staat.
+                    if 110 <= card_y <= 460 and pygame.Rect(50, card_y, 700, 100).collidepoint(mouse) and has_alive_pokemon(player_team):
+                        gym_active = False
                         active_battle = Battle(player_team, name, info, db)
                         displayed_player_hp = None
                         displayed_enemy_hp = None
@@ -332,8 +395,31 @@ while True:
                 # Na een afgerond gevecht kun je verlaten en eventueel prijzengeld ontvangen.
                 if active_battle.finished:
                     if pygame.Rect(250, 510, 300, 60).collidepoint(mouse):
-                        if active_battle.winner == "player": wallet += active_battle.prize_money
-                        current_state = "TRAINER_MENU"
+                        if gym_active:
+                            if active_battle.winner == "player":
+                                gym_total_reward += active_battle.prize_money
+                                gym_round_idx += 1
+                                if gym_round_idx < len(gym_queue):
+                                    # Start direct de volgende gym-ronde.
+                                    name, info = gym_queue[gym_round_idx]
+                                    active_battle = Battle(player_team, name, info, db)
+                                    active_battle.log = f"GYM RONDE {gym_round_idx + 1}/{len(gym_queue)} tegen {name}!"
+                                    displayed_player_hp = None
+                                    displayed_enemy_hp = None
+                                    last_player_idx = None
+                                    last_enemy_idx = None
+                                else:
+                                    # Extra gym-bonus bovenop alle rondebeloningen.
+                                    wallet += gym_total_reward + 300
+                                    gym_active = False
+                                    current_state = "MAIN_MENU"
+                            else:
+                                # Verlies stopt de gym challenge.
+                                gym_active = False
+                                current_state = "MAIN_MENU"
+                        else:
+                            if active_battle.winner == "player": wallet += active_battle.prize_money
+                            current_state = "TRAINER_MENU"
                 elif active_battle.show_switch_menu:
                     # In het wisselmenu kun je alleen naar een Pokémon met HP > 0 wisselen.
                     for i in range(6):
@@ -356,10 +442,14 @@ while True:
     # --- SCHERMEN TEKENEN ---
     if current_state == "MAIN_MENU":
         # Hoofdmenu met snelle toegang tot trainerlijst en Poké Mart.
+        can_battle = has_alive_pokemon(player_team)
         pygame.draw.rect(screen, HEADER_BLUE, (0, 0, 800, 180))
         screen.blit(font_title.render("POKÉMON ADVENTURE", True, WHITE), (240, 70))
-        draw_btn("TRAINER LIJST", pygame.Rect(275, 220, 250, 60), mouse)
+        draw_btn("TRAINER LIJST", pygame.Rect(275, 220, 250, 60), mouse, HEADER_BLUE, active=can_battle)
         draw_btn("POKÉ MART", pygame.Rect(275, 300, 250, 60), mouse, SUCCESS_GREEN)
+        draw_btn("GYM CHALLENGE", pygame.Rect(275, 380, 250, 60), mouse, ACCENT_GOLD, active=bool(trainers_json.get("trainers")) and can_battle)
+        if not can_battle:
+            screen.blit(font_small.render("Alle Pokémon zijn KO. Heal eerst in de shop.", True, DANGER_RED), (245, 460))
         screen.blit(font_main.render(f"Geld: ${wallet}", True, GRAY_TEXT), (350, 500))
 
     elif current_state == "SHOP":
@@ -392,15 +482,38 @@ while True:
 
     elif current_state == "TRAINER_MENU":
         # Traineroverzicht waar elke kaart één mogelijk gevecht start.
+        can_battle = has_alive_pokemon(player_team)
+        trainer_count = len(trainers_json.get("trainers", {}))
+        max_scroll = max(0, trainer_count * 130 - 460)
+        trainer_scroll = max(0, min(max_scroll, trainer_scroll))
+        # Knip trainerkaarten af tot het gebied onder de header.
+        list_clip_rect = pygame.Rect(0, 95, 800, 505)
         pygame.draw.rect(screen, HEADER_BLUE, (0, 0, 800, 95))
         draw_btn("TERUG", pygame.Rect(20, 25, 100, 45), mouse)
+        screen.set_clip(list_clip_rect)
         for i, (name, info) in enumerate(trainers_json.get("trainers", {}).items()):
-            draw_btn(f"{name} [{info.get('pokemon_type')}] - ${info.get('prize_money')}", pygame.Rect(50, 110 + i*130, 700, 100), mouse)
+            card_y = 110 + i*130 - trainer_scroll
+            if -120 <= card_y <= 600:
+                difficulty = info.get("difficulty") or "Trainer"
+                prize = info.get("prize_money") if info.get("prize_money") is not None else 0
+                draw_btn(f"{name} [{difficulty}] - ${prize}", pygame.Rect(50, card_y, 700, 100), mouse, HEADER_BLUE, active=can_battle)
+        screen.set_clip(None)
+        # Kleine scrollbar-indicator bij lange lijsten.
+        if max_scroll > 0:
+            track = pygame.Rect(770, 110, 10, 450)
+            pygame.draw.rect(screen, (220, 220, 220), track, border_radius=6)
+            thumb_h = max(60, int(track.height * (450 / (trainer_count * 130))))
+            thumb_y = track.y + int((trainer_scroll / max_scroll) * (track.height - thumb_h))
+            pygame.draw.rect(screen, HEADER_BLUE, (track.x, thumb_y, track.width, thumb_h), border_radius=6)
+        if not can_battle:
+            screen.blit(font_main.render("Je team is KO. Gebruik eerst TEAM FULL HEAL in de shop.", True, DANGER_RED), (90, 500))
 
     elif current_state == "BATTLE":
         # Battle-weergave met actieve Pokémon, acties en gevechtslog.
         p, e = active_battle.player_team[active_battle.p_idx], active_battle.enemy_team[active_battle.e_idx]
         now = pygame.time.get_ticks()
+        if gym_active:
+            screen.blit(font_small.render(f"GYM RONDE: {gym_round_idx + 1}/{len(gym_queue)}", True, WHITE), (20, 12))
 
         # Reset geanimeerde HP bij wissel naar een andere actieve Pokémon.
         if last_player_idx != active_battle.p_idx:
