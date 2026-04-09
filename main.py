@@ -1,38 +1,61 @@
-from functions import *
+contacts = []
 
-def start_game():
-    clear_screen()
-    welcome()
-    
-    name = ask_name("Wat is uw naam? ")
-    player = Player(name, get_random_pokemon(6), 20)
-    trainers = load_trainers_from_json("trainers.json")
 
-    playing = True
-    while playing and any(not t.is_beaten for t in trainers):
-        show_player_stats(player)
-        show_all_trainers(trainers)
-        
-        chosen_name = input("\nKies een trainer om te vechten (of 'stop'): ")
-        if chosen_name.lower() == 'stop': break
-            
-        selected_trainer = next((t for t in trainers if t.name.lower() == chosen_name.lower() and not t.is_beaten), None)
-        
-        if selected_trainer:
-            victory = battle(player, selected_trainer)
+def add_contact(name, phone_numbers, email):
+    contact = {
+        'name': name,
+        'phone_numbers': phone_numbers,
+        'email': email
+    }
+    contacts.append(contact)
 
-            if victory:
-                selected_trainer.is_beaten = True
-                reward = get_money_reward(selected_trainer)
-                player.money += reward
-                print(f"Je hebt {color_text(f'${reward}', 'yellow')} gewonnen!")
-                trainers = [t for t in trainers if not t.is_beaten] 
-            else:
-                print(color_text("Je hebt geen bruikbare Pokémon meer! Je hebt verloren.", "red"))
-        else:
-            print(color_text("Trainer niet gevonden of al verslagen.", "red"))
 
-    print("\nBedankt voor het spelen!")
+def search_contacts(keyword):
+    return list(filter(lambda c: keyword.lower() in c['email'].lower(), contacts))
 
-if __name__ == "__main__":
-    start_game()
+
+def delete_contact(name):
+    for contact in contacts:
+        if contact['name'].lower() == name.lower():
+            contacts.remove(contact)
+
+
+def update_contact(name, phone_numbers, email):
+    for contact in contacts:
+        if contact['name'].lower() == name.lower():
+            contact['phone_numbers'] = phone_numbers
+            contact['email'] = email
+            break
+
+
+def main():
+    add_contact("John Doe", ["1234567890", "9876543210"], "john@example.com")
+    add_contact("Jane Smith", ["5555555555"], "jane@example.com")
+    add_contact("Bob Johnson", ["1111111111",
+                "2222222222", "3333333333"], "bob@example.com")
+
+    search_term = input("Enter a name to search: ")
+    search_results = search_contacts(search_term)
+
+    if search_results:
+        print("Search Results:")
+        for contact in search_results:
+            print(f"Name: {contact['name']}")
+            print("Phone Numbers:", ', '.join(contact['phone_numbers']))
+            print(f"Email: {contact['email']}")
+    else:
+        print("No matching contacts found.")
+
+    contact_name = input("Enter the name of the contact to delete: ")
+    delete_contact(contact_name)
+    print("Contact deleted successfully.")
+
+    update_name = input("Enter the name of the contact to update: ")
+    update_phone_numbers = input(
+        "Enter the new phone numbers (separated by commas): ").split(", ")
+    update_email = input("Enter the new email address: ")
+    update_contact(update_name, update_phone_numbers, update_email)
+    print("Contact updated successfully.")
+
+
+main()

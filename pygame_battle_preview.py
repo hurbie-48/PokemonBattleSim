@@ -47,7 +47,7 @@ def draw_hp_bar(x, y, current, maximum):
     # Tekent een HP-balk met kleur op basis van het resterende percentage HP.
     width = 230
     pygame.draw.rect(screen, (200, 200, 200), (x, y, width, 12), border_radius=6)
-    pct = max(0, current / maximum)
+    pct = max(0, min(1, current / maximum)) if maximum > 0 else 0
     color = SUCCESS_GREEN if pct > 0.4 else (ACCENT_GOLD if pct > 0.15 else DANGER_RED)
     if pct > 0:
         pygame.draw.rect(screen, color, (x, y, int(width * pct), 12), border_radius=6)
@@ -94,6 +94,34 @@ def wrap_text(text, font, max_width):
             current = w
     lines.append(current)
     return lines
+
+def draw_impact_effect(center_x, center_y, progress, color):
+    # Tekent een ronde impact-ring met kleine particles (0.0 -> 1.0).
+    fx = pygame.Surface((180, 180), pygame.SRCALPHA)
+    cx, cy = 90, 90
+    radius = int(16 + 42 * progress)
+    alpha = max(0, int(180 * (1 - progress)))
+    pygame.draw.circle(fx, (*color, alpha), (cx, cy), radius, 4)
+
+    # Kleine particles die naar buiten bewegen voor meer "impact" gevoel.
+    for i in range(8):
+        ang = (i / 8) * 6.28318
+        dist = 14 + int(progress * 34)
+        px = int(cx + (dist * pygame.math.Vector2(1, 0).rotate_rad(ang).x))
+        py = int(cy + (dist * pygame.math.Vector2(1, 0).rotate_rad(ang).y))
+        p_alpha = max(0, int(220 * (1 - progress)))
+        pygame.draw.circle(fx, (*color, p_alpha), (px, py), max(1, 4 - int(progress * 3)))
+    screen.blit(fx, (center_x - 90, center_y - 90))
+
+def draw_heal_effect(center_x, center_y, progress):
+    # Tekent een zachte groene heal-aura met pulserende ringen.
+    fx = pygame.Surface((220, 220), pygame.SRCALPHA)
+    cx, cy = 110, 110
+    base_alpha = max(0, int(110 * (1 - progress)))
+    pygame.draw.circle(fx, (80, 255, 140, base_alpha), (cx, cy), 54 + int(progress * 16))
+    pygame.draw.circle(fx, (200, 255, 210, max(0, int(140 * (1 - progress)))), (cx, cy), 28 + int(progress * 10), 3)
+    pygame.draw.circle(fx, (120, 255, 180, max(0, int(100 * (1 - progress)))), (cx, cy), 42 + int(progress * 14), 2)
+    screen.blit(fx, (center_x - 110, center_y - 110))
 
 # --- 4. DATA LOGICA ---
 def load_data():
@@ -148,11 +176,36 @@ class Battle:
         self.finished, self.winner = False, None
         self.prize_money = t_info.get("prize_money", 0)
         self.show_switch_menu = False
+        # Eenvoudige animatie-timers (in milliseconden) voor gevechtseffecten.
+        self.anim = {
+            "player_attack_until": 0,
+            "enemy_attack_until": 0,
+            "player_hit_until": 0,
+            "enemy_hit_until": 0,
+            "heal_until": 0
+        }
+
+    def trigger_player_attack_anim(self):
+        # Start een korte animatie voor speler-aanval en enemy-hit.
+        now = pygame.time.get_ticks()
+        self.anim["player_attack_until"] = now + 120
+        self.anim["enemy_hit_until"] = now + 220
+
+    def trigger_enemy_attack_anim(self):
+        # Start een korte animatie voor enemy-aanval en player-hit.
+        now = pygame.time.get_ticks()
+        self.anim["enemy_attack_until"] = now + 120
+        self.anim["player_hit_until"] = now + 220
+
+    def trigger_heal_anim(self):
+        # Start een korte heal-glow animatie op de actieve speler-Pokémon.
+        self.anim["heal_until"] = pygame.time.get_ticks() + 260
 
     def turn(self, move):
         # Voert een spelerbeurt uit: schade doen, KO-afhandeling en eventuele tegenaanval.
         if self.finished or self.player_team[self.p_idx]["current_hp"] <= 0: return
         p, e = self.player_team[self.p_idx], self.enemy_team[self.e_idx]
+        self.trigger_player_attack_anim()
         
         m_type = get_move_type(move)
         mult = 2.0 if m_type in e.get("weaknesses", []) else 1.0
@@ -169,6 +222,7 @@ class Battle:
                 self.log = "Winst! Alle vijanden verslagen."
             return
         
+        self.trigger_enemy_attack_anim()
         dmg_in = random.randint(15, 25)
         p["current_hp"] = max(0, p["current_hp"] - dmg_in)
         if p["current_hp"] <= 0:
@@ -208,6 +262,7 @@ class Battle:
         p["current_hp"] = min(p["max_hp"], p["current_hp"] + heal_amount)
         healed = p["current_hp"] - before
         self.log = f"Potion gebruikt! {p['name']} herstelt {healed} HP."
+        self.trigger_heal_anim()
         return True
 
 # --- A. INVENTORY & ITEMS ---
@@ -223,6 +278,12 @@ current_state = "MAIN_MENU"
 wallet = 200
 # Actieve battle-instantie; blijft None totdat je een trainer kiest.
 active_battle = None
+# Geanimeerde HP-waarden voor een vloeiende daling/stijging in de HP-bars.
+displayed_player_hp = None
+displayed_enemy_hp = None
+# Onthoudt laatste actieve indices om HP-animatie te resetten bij wissel/KO.
+last_player_idx = None
+last_enemy_idx = None
 
 # --- 7. MAIN LOOP ---
 while True:
@@ -261,6 +322,10 @@ while True:
                 for i, (name, info) in enumerate(trainers_json.get("trainers", {}).items()):
                     if pygame.Rect(50, 110 + i*130, 700, 100).collidepoint(mouse):
                         active_battle = Battle(player_team, name, info, db)
+                        displayed_player_hp = None
+                        displayed_enemy_hp = None
+                        last_player_idx = None
+                        last_enemy_idx = None
                         current_state = "BATTLE"
 
             elif current_state == "BATTLE":
@@ -335,6 +400,28 @@ while True:
     elif current_state == "BATTLE":
         # Battle-weergave met actieve Pokémon, acties en gevechtslog.
         p, e = active_battle.player_team[active_battle.p_idx], active_battle.enemy_team[active_battle.e_idx]
+        now = pygame.time.get_ticks()
+
+        # Reset geanimeerde HP bij wissel naar een andere actieve Pokémon.
+        if last_player_idx != active_battle.p_idx:
+            displayed_player_hp = float(p["current_hp"])
+            last_player_idx = active_battle.p_idx
+        if last_enemy_idx != active_battle.e_idx:
+            displayed_enemy_hp = float(e["current_hp"])
+            last_enemy_idx = active_battle.e_idx
+
+        # Smooth HP-overgang richting echte HP-waardes.
+        if displayed_player_hp is None:
+            displayed_player_hp = float(p["current_hp"])
+        if displayed_enemy_hp is None:
+            displayed_enemy_hp = float(e["current_hp"])
+        displayed_player_hp += (p["current_hp"] - displayed_player_hp) * 0.2
+        displayed_enemy_hp += (e["current_hp"] - displayed_enemy_hp) * 0.2
+        if abs(displayed_player_hp - p["current_hp"]) < 0.3:
+            displayed_player_hp = float(p["current_hp"])
+        if abs(displayed_enemy_hp - e["current_hp"]) < 0.3:
+            displayed_enemy_hp = float(e["current_hp"])
+
         if battle_bg_img: screen.blit(battle_bg_img, (0, 0))
         else: pygame.draw.rect(screen, (135, 206, 235), (0, 0, 800, 450))
 
@@ -342,17 +429,45 @@ while True:
         pygame.draw.rect(screen, WHITE, (40, 40, 260, 115), border_radius=15)
         screen.blit(font_small.render(f"ENEMY: {e['name'].upper()}", True, TEXT_DARK), (55, 50))
         draw_type_icon(55, 75, e.get("type", ["Normal"])[0])
-        draw_hp_bar(55, 115, e['current_hp'], e['max_hp'])
+        draw_hp_bar(55, 115, displayed_enemy_hp, e['max_hp'])
 
         # You UI
         pygame.draw.rect(screen, WHITE, (500, 300, 260, 115), border_radius=15)
         screen.blit(font_small.render(f"YOU: {p['name'].upper()}", True, TEXT_DARK), (515, 310))
         draw_type_icon(515, 335, p.get("type", ["Normal"])[0])
-        draw_hp_bar(515, 375, p['current_hp'], p['max_hp'])
+        draw_hp_bar(515, 375, displayed_player_hp, p['max_hp'])
 
         # Sprites
-        if e['current_hp'] > 0: screen.blit(pygame.transform.flip(e["sprite"], True, False), (500, 50))
-        if p['current_hp'] > 0: screen.blit(p["sprite"], (150, 210))
+        enemy_x, enemy_y = 500, 50
+        player_x, player_y = 150, 210
+
+        # Aanval-lunge animatie: aanvaller schuift kort naar voren.
+        if now < active_battle.anim["player_attack_until"]:
+            player_x += 10
+        if now < active_battle.anim["enemy_attack_until"]:
+            enemy_x -= 10
+
+        # Hit-shake animatie: geraakt doel schudt kort.
+        if now < active_battle.anim["enemy_hit_until"]:
+            enemy_x += random.randint(-6, 6)
+            enemy_y += random.randint(-4, 4)
+        if now < active_battle.anim["player_hit_until"]:
+            player_x += random.randint(-6, 6)
+            player_y += random.randint(-4, 4)
+
+        if e['current_hp'] > 0: screen.blit(pygame.transform.flip(e["sprite"], True, False), (enemy_x, enemy_y))
+        if p['current_hp'] > 0: screen.blit(p["sprite"], (player_x, player_y))
+
+        # Mooiere VFX: ronde impact-ringen en zachte heal-aura (geen harde vierkanten).
+        if now < active_battle.anim["enemy_hit_until"]:
+            enemy_progress = 1 - ((active_battle.anim["enemy_hit_until"] - now) / 220)
+            draw_impact_effect(enemy_x + 110, enemy_y + 110, enemy_progress, (255, 255, 255))
+        if now < active_battle.anim["player_hit_until"]:
+            player_hit_progress = 1 - ((active_battle.anim["player_hit_until"] - now) / 220)
+            draw_impact_effect(player_x + 110, player_y + 110, player_hit_progress, (255, 110, 110))
+        if now < active_battle.anim["heal_until"]:
+            heal_progress = 1 - ((active_battle.anim["heal_until"] - now) / 260)
+            draw_heal_effect(player_x + 110, player_y + 110, heal_progress)
 
         # Dialoog venster
         pygame.draw.rect(screen, WHITE, (0, 450, 800, 150))
